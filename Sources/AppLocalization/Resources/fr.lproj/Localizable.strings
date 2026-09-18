@@ -84,3 +84,10 @@
 "Classic" = "Classique";
 "By level" = "Par niveau";
 "By frequency" = "Par fréquence";
+"Dashboard" = "Tableau de bord";
+"Meters" = "VU-mètres";
+"Spectrum" = "Spectre";
+"Stereo" = "Stéréo";
+"View" = "Vue";
+"Choose a view" = "Choisir une vue";
+"%.1f" = "%.1f";

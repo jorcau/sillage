@@ -46,6 +46,11 @@ struct SillageApp: App {
                 SettingsLink { Text(model.text("Demo previews…")) }.keyboardShortcut("d", modifiers: .command)
             }
             CommandGroup(after: .toolbar) {
+                ForEach(VisualizerLayout.allCases, id: \.self) { layout in
+                    Button(model.text(layout.title)) { model.layout = layout }
+                        .keyboardShortcut(layout.shortcut, modifiers: .command)
+                }
+                Divider()
                 Button(model.text("Full Screen")) { model.toggleFullscreen() }.keyboardShortcut("f", modifiers: [.command, .control])
             }
         }

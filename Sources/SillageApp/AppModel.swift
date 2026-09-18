@@ -27,6 +27,9 @@ final class AppModel: ObservableObject {
         ?? UserDefaults.standard.string(forKey: "colorPalette")) {
         didSet { UserDefaults.standard.set(theme.rawValue, forKey: "theme") }
     }
+    @Published var layout = VisualizerLayout(rawValue: UserDefaults.standard.string(forKey: "visualizerLayout") ?? "") ?? .dashboard {
+        didSet { UserDefaults.standard.set(layout.rawValue, forKey: "visualizerLayout") }
+    }
     @Published var deviceName = "Audio output unchanged"
     @Published var demoSignal = DemoSignal.music
     @Published var brightness = 0.68

@@ -44,20 +44,7 @@ private struct DashboardSurface: View {
                         Button(model.text("macOS Settings")) { model.openPrivacy() }
                     }.foregroundStyle(InterfaceColors.amber)
                 }
-                GeometryReader { geometry in
-                    HStack(spacing: m(26)) {
-                        InstrumentPanel(title: model.text("SPECTRUM"), detail: "20 Hz — 20 kHz") {
-                            SpectrumView(frame: frame, showPeaks: model.showPeaks)
-                        }.frame(width: metrics.snap((geometry.size.width - m(26)) * 0.70))
-                        InstrumentPanel(title: model.text("STEREO IMAGE"), detail: "L / R") {
-                            PhaseView(frame: frame)
-                        }
-                    }
-                }
-                InstrumentPanel(title: model.text("LEVELS"), detail: model.text("RMS · SAMPLE PEAK · dBFS")) {
-                    LevelView(frame: frame, showPeaks: model.showPeaks)
-                        .frame(height: m(120))
-                }
+                DashboardInstruments(model: model, frame: frame)
                 footer(frame: frame)
             }
             .padding(.horizontal, m(38)).padding(.top, m(48)).padding(.bottom, m(26))
@@ -81,6 +68,20 @@ private struct DashboardSurface: View {
                 Text(model.text("S O U N D ,  I N  L I G H T")).font(.system(size: m(9), weight: .medium)).foregroundStyle(InterfaceColors.secondary)
             }
             Spacer(minLength: m(15))
+            Menu {
+                Picker(model.text("View"), selection: $model.layout) {
+                    ForEach(VisualizerLayout.allCases, id: \.self) { layout in
+                        Label(model.text(layout.title), systemImage: layout.symbol).tag(layout)
+                    }
+                }
+            } label: {
+                Label(model.text(model.layout.title), systemImage: model.layout.symbol)
+                    .font(.system(size: m(11), weight: .medium))
+            }
+            .menuStyle(.borderlessButton).fixedSize()
+            .help(model.text("Choose a view") + " · ⌘1–4")
+            .accessibilityLabel(model.text("View"))
+            .accessibilityValue(model.text(model.layout.title))
             VStack(alignment: .trailing, spacing: m(6)) {
                 HStack(spacing: m(7)) {
                     Circle().fill(model.mode == .system ? theme.accent : InterfaceColors.secondary).frame(width: m(5), height: m(5))

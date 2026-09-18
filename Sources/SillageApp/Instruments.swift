@@ -4,7 +4,7 @@ import AppLocalization
 
 // Canvas is allocated at its final view size. All text and geometry are drawn in
 // those coordinates, with no CGContext/view scaling or enlarged backing texture.
-private struct InstrumentDrawing {
+struct InstrumentDrawing {
     let context: GraphicsContext
     let metrics: InstrumentMetrics
     func m(_ points: CGFloat) -> CGFloat { metrics.size(points) }
