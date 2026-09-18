@@ -10,7 +10,7 @@ private struct InstrumentDrawing {
     func m(_ points: CGFloat) -> CGFloat { metrics.size(points) }
     func snap(_ points: CGFloat) -> CGFloat { metrics.snap(points) }
 
-    func label(_ text: String, x: CGFloat, y: CGFloat, color: Color = Palette.secondary,
+    func label(_ text: String, x: CGFloat, y: CGFloat, color: Color = InterfaceColors.secondary,
                size: CGFloat = 10, anchor: UnitPoint = .center) {
         context.draw(Text(text).font(.system(size: m(size), design: .monospaced)).foregroundColor(color),
                      at: CGPoint(x: snap(x), y: snap(y)), anchor: anchor)
@@ -32,7 +32,7 @@ private struct InstrumentDrawing {
 }
 
 struct SpectrumView: View {
-    @Environment(\.instrumentPalette) private var palette
+    @Environment(\.instrumentTheme) private var theme
     @Environment(\.appLocalizer) private var localizer
     let frame: AnalysisFrame
     let showPeaks: Bool
@@ -61,14 +61,12 @@ struct SpectrumView: View {
                 d.label(text, x: px, y: plot.maxY + d.m(19), size: 9)
             }
             let width = plot.width / CGFloat(frame.spectrum.count)
-            // Map the palette across the logarithmic frequency axis, shared by every bar.
-            let left = CGPoint(x: plot.minX, y: plot.minY)
-            let rightEdge = CGPoint(x: plot.maxX, y: plot.minY)
-            let fill: GraphicsContext.Shading = palette == .mint
-                ? .linearGradient(Gradient(colors: [palette.accent.opacity(0.13), palette.accent.opacity(0.7)]),
+            // Share the theme's fixed frequency or level scale across bars and holds.
+            let fill: GraphicsContext.Shading = theme == .mint
+                ? .linearGradient(Gradient(colors: [theme.accent.opacity(0.13), theme.accent.opacity(0.7)]),
                     startPoint: CGPoint(x: 0, y: plot.maxY), endPoint: CGPoint(x: 0, y: plot.minY))
-                : palette.shading(from: left, to: rightEdge, opacity: 0.72)
-            let peak = palette.shading(from: left, to: rightEdge, opacity: 0.90)
+                : theme.spectrumShading(in: plot, opacity: 0.72)
+            let peak = theme.spectrumShading(in: plot, opacity: 0.90)
             for i in frame.spectrum.indices {
                 let px = d.snap(plot.minX + CGFloat(i) * width)
                 let right = d.snap(plot.minX + (CGFloat(i) + 0.72) * width)
@@ -87,7 +85,7 @@ struct SpectrumView: View {
 }
 
 struct PhaseView: View {
-    @Environment(\.instrumentPalette) private var palette
+    @Environment(\.instrumentTheme) private var theme
     @Environment(\.appLocalizer) private var localizer
     let frame: AnalysisFrame
     @Environment(\.instrumentMetrics) private var metrics
@@ -101,8 +99,8 @@ struct PhaseView: View {
             context.stroke(Path(ellipseIn: circle), with: .color(Color(white: 0.10)), lineWidth: metrics.hairline)
             context.stroke(Path(ellipseIn: circle.insetBy(dx: radius*0.5, dy: radius*0.5)),
                            with: .color(Color(white: 0.06)), lineWidth: metrics.hairline)
-            d.line(CGPoint(x: center.x-radius, y: center.y), CGPoint(x: center.x+radius, y: center.y), color: Palette.line)
-            d.line(CGPoint(x: center.x, y: center.y-radius), CGPoint(x: center.x, y: center.y+radius), color: Palette.line)
+            d.line(CGPoint(x: center.x-radius, y: center.y), CGPoint(x: center.x+radius, y: center.y), color: InterfaceColors.line)
+            d.line(CGPoint(x: center.x, y: center.y-radius), CGPoint(x: center.x, y: center.y+radius), color: InterfaceColors.line)
             for sign in [-1.0, 1.0] {
                 d.line(CGPoint(x: center.x-radius*0.707, y: center.y-sign*radius*0.707),
                        CGPoint(x: center.x+radius*0.707, y: center.y+sign*radius*0.707), color: Color(white: 0.07))
@@ -121,17 +119,17 @@ struct PhaseView: View {
             // Its own bounds keep color variation visible at quiet listening levels.
             let bounds = trail.boundingRect
             let traceShading: GraphicsContext.Shading = bounds.isEmpty && bounds.width == 0 && bounds.height == 0
-                ? .color(palette.accent.opacity(0.50))
-                : palette.shading(from: CGPoint(x: bounds.minX, y: bounds.maxY),
+                ? .color(theme.accent.opacity(0.50))
+                : theme.shading(from: CGPoint(x: bounds.minX, y: bounds.maxY),
                                   to: CGPoint(x: bounds.maxX, y: bounds.minY), opacity: 0.50)
             context.stroke(trail, with: traceShading,
                            style: StrokeStyle(lineWidth: d.m(0.85), lineJoin: .round))
             let barY = size.height - d.m(28)
             d.line(CGPoint(x: d.m(8), y: barY), CGPoint(x: size.width-d.m(8), y: barY),
-                   color: Palette.line, width: d.m(2))
+                   color: InterfaceColors.line, width: d.m(2))
             let marker = d.m(8) + CGFloat((frame.correlation+1)/2) * (size.width-d.m(16))
             context.fill(Path(ellipseIn: CGRect(x: marker-d.m(3), y: barY-d.m(3), width: d.m(6), height: d.m(6))),
-                         with: .color(frame.correlation < 0 ? Palette.amber : palette.accent))
+                         with: .color(frame.correlation < 0 ? InterfaceColors.amber : theme.accent))
             d.label("−1", x: d.m(8), y: size.height-d.m(7), size: 9)
             d.label(String(format: "CORR  %+.2f", frame.correlation), x: size.width/2,
                     y: size.height-d.m(7), color: Color(white: 0.65), size: 9)
@@ -142,7 +140,7 @@ struct PhaseView: View {
 }
 
 struct LevelView: View {
-    @Environment(\.instrumentPalette) private var palette
+    @Environment(\.instrumentTheme) private var theme
     @Environment(\.appLocalizer) private var localizer
     let frame: AnalysisFrame
     let showPeaks: Bool
@@ -158,9 +156,9 @@ struct LevelView: View {
             // Anchor colors to the full dBFS scale, not to the moving bar length.
             let gradientStart = CGPoint(x: start, y: 0)
             let gradientEnd = CGPoint(x: end, y: 0)
-            let peakFill = palette.shading(from: gradientStart, to: gradientEnd, opacity: 0.20)
-            let rmsFill = palette.shading(from: gradientStart, to: gradientEnd, opacity: 0.85)
-            let holdFill = palette.shading(from: gradientStart, to: gradientEnd)
+            let peakFill = theme.shading(from: gradientStart, to: gradientEnd, opacity: 0.20)
+            let rmsFill = theme.shading(from: gradientStart, to: gradientEnd, opacity: 0.85)
+            let holdFill = theme.shading(from: gradientStart, to: gradientEnd)
             for (i, level) in [frame.left, frame.right].enumerated() {
                 let y = d.m(CGFloat(i)*42 + 29)
                 d.label(i == 0 ? "L" : "R", x: 0, y: y+d.m(5), color: Color(white: 0.82), size: 12, anchor: .leading)
@@ -173,7 +171,7 @@ struct LevelView: View {
                 if showPeaks {
                     d.line(CGPoint(x: x(level.holdDB), y: y-d.m(2)),
                            CGPoint(x: x(level.holdDB), y: y+d.m(11)),
-                           shading: level.holdDB > -1 ? .color(Palette.amber) : holdFill, width: d.m(1.5))
+                           shading: level.holdDB > -1 ? .color(InterfaceColors.amber) : holdFill, width: d.m(1.5))
                 }
                 if level.clipped {
                     context.fill(Path(ellipseIn: CGRect(x: end+d.m(9), y: y+d.m(2), width: d.m(5), height: d.m(5))), with: .color(.red))
@@ -181,11 +179,11 @@ struct LevelView: View {
                 d.label(level.rmsDB <= -89 ? "−∞" : String(format: "%5.1f", level.rmsDB),
                         x: size.width-d.m(70), y: y+d.m(5), color: Color(white: 0.78), size: 14, anchor: .trailing)
                 d.label(level.peakDB <= -89 ? "−∞" : String(format: "%5.1f", level.peakDB),
-                        x: size.width, y: y+d.m(5), color: palette.peak, size: 14, anchor: .trailing)
+                        x: size.width, y: y+d.m(5), color: theme.peak, size: 14, anchor: .trailing)
             }
             for db in [-60,-48,-36,-24,-18,-12,-6,0] {
                 d.label("\(db)", x: x(Float(db)), y: d.m(6), size: 9)
-                d.line(CGPoint(x: x(Float(db)), y: d.m(17)), CGPoint(x: x(Float(db)), y: d.m(20)), color: Palette.line)
+                d.line(CGPoint(x: x(Float(db)), y: d.m(17)), CGPoint(x: x(Float(db)), y: d.m(20)), color: InterfaceColors.line)
             }
             d.label("RMS", x: size.width-d.m(70), y: d.m(6), size: 9, anchor: .trailing)
             d.label(localizer.text("PEAK"), x: size.width, y: d.m(6), size: 9, anchor: .trailing)

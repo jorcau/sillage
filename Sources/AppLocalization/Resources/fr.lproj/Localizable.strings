@@ -70,7 +70,6 @@
 "Waiting for the system to respond. If an audio capture permission prompt is shown, respond to it, then retry if needed." = "La connexion attend une réponse du système. Si une demande de capture audio est affichée, répondez-y, puis réessayez si nécessaire.";
 "dropped frames" = "échantillons perdus";
 "macOS Settings" = "Réglages macOS";
-"Color palette" = "Palette de couleurs";
 "Mint (Default)" = "Menthe (défaut)";
 "Applies instantly to instruments and controls. Your choice is saved." = "Le changement est immédiat sur les instruments et les commandes. Votre choix est mémorisé.";
 "Aurora" = "Aurore";
@@ -78,3 +77,10 @@
 "Twilight" = "Crépuscule";
 "Prism" = "Prisme";
 "Lagoon" = "Lagon";
+"Themes" = "Thèmes";
+"Thermal" = "Thermique";
+"Neon" = "Néon";
+"Alpine" = "Alpin";
+"Classic" = "Classique";
+"By level" = "Par niveau";
+"By frequency" = "Par fréquence";

@@ -19,13 +19,13 @@ struct SettingsView: View {
 
             Section {
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 3), spacing: 10) {
-                    ForEach(InstrumentPalette.allCases, id: \.self) { palette in
-                        paletteButton(palette)
+                    ForEach(InstrumentTheme.allCases, id: \.self) { theme in
+                        themeButton(theme)
                     }
                 }
                 Text(model.text("Applies instantly to instruments and controls. Your choice is saved."))
                     .font(.caption).foregroundStyle(.secondary)
-            } header: { Text(model.text("Color palette")) }
+            } header: { Text(model.text("Themes")) }
 
             Section {
                 Picker(model.text("Signal"), selection: Binding(
@@ -55,7 +55,7 @@ struct SettingsView: View {
                         .disabled(model.mode == .system)
                     Spacer()
                     if model.mode == .demo {
-                        SillageMark().stroke(model.colorPalette.accent, style: StrokeStyle(lineWidth: 1.2, lineCap: .round))
+                        SillageMark().stroke(model.theme.accent, style: StrokeStyle(lineWidth: 1.2, lineCap: .round))
                             .frame(width: 20, height: 16)
                             .accessibilityLabel(model.text("Preview running"))
                     }
@@ -63,22 +63,22 @@ struct SettingsView: View {
             } header: { Text(model.text("Demo previews")) }
         }
         .formStyle(.grouped)
-        .frame(width: 540, height: 580)
-        .tint(model.colorPalette.accent)
+        .frame(width: 540, height: 690)
+        .tint(model.theme.accent)
         .preferredColorScheme(.dark)
     }
 
-    private func paletteButton(_ palette: InstrumentPalette) -> some View {
-        let selected = model.colorPalette == palette
-        return Button { model.colorPalette = palette } label: {
+    private func themeButton(_ theme: InstrumentTheme) -> some View {
+        let selected = model.theme == theme
+        return Button { model.theme = theme } label: {
             VStack(alignment: .leading, spacing: 10) {
                 HStack(spacing: 4) {
-                    Text(model.text(palette.title)).font(.system(size: 11, weight: .medium))
+                    Text(model.text(theme.title)).font(.system(size: 11, weight: .medium))
                     Spacer(minLength: 0)
                     Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(palette.accent).opacity(selected ? 1 : 0)
+                        .foregroundStyle(theme.accent).opacity(selected ? 1 : 0)
                 }
-                LinearGradient(colors: palette.colors, startPoint: .leading, endPoint: .trailing)
+                LinearGradient(colors: theme.colors, startPoint: theme.spectrumStart, endPoint: theme.spectrumEnd)
                     .frame(height: 26)
                     .mask {
                         HStack(alignment: .bottom, spacing: 4) {
@@ -90,14 +90,17 @@ struct SettingsView: View {
                             }
                         }
                     }
+                Label(model.text(theme.spectrumDescription), systemImage: theme.spectrumAxis == .level ? "arrow.up" : "arrow.right")
+                    .font(.system(size: 10)).foregroundStyle(.secondary)
             }
             .padding(10).frame(maxWidth: .infinity)
             .background(Color.black, in: RoundedRectangle(cornerRadius: 8))
-            .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(selected ? palette.accent : Color(white: 0.22), lineWidth: 1))
+            .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(selected ? theme.accent : Color(white: 0.22), lineWidth: 1))
             .contentShape(RoundedRectangle(cornerRadius: 8))
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(model.text(palette.title))
+        .accessibilityLabel(model.text(theme.title))
+        .accessibilityValue(model.text(theme.spectrumDescription))
         .accessibilityAddTraits(selected ? [.isSelected] : [])
     }
 }

@@ -22,8 +22,10 @@ final class AppModel: ObservableObject {
     @Published var language: AppLanguage = AppLanguage(rawValue: UserDefaults.standard.string(forKey: "appLanguage") ?? "system") ?? .system {
         didSet { UserDefaults.standard.set(language.rawValue, forKey: "appLanguage") }
     }
-    @Published var colorPalette = InstrumentPalette(savedValue: UserDefaults.standard.string(forKey: "colorPalette")) {
-        didSet { UserDefaults.standard.set(colorPalette.rawValue, forKey: "colorPalette") }
+    // Read the previous preference as a fallback so existing selections survive the rename.
+    @Published var theme = InstrumentTheme(savedValue: UserDefaults.standard.string(forKey: "theme")
+        ?? UserDefaults.standard.string(forKey: "colorPalette")) {
+        didSet { UserDefaults.standard.set(theme.rawValue, forKey: "theme") }
     }
     @Published var deviceName = "Audio output unchanged"
     @Published var demoSignal = DemoSignal.music

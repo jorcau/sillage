@@ -1,7 +1,7 @@
 import SwiftUI
 import AudioAnalysis
 
-enum Palette {
+enum InterfaceColors {
     static let secondary = Color(white: 0.49)
     static let line = Color(white: 0.13)
     static let amber = Color(red: 0.88, green: 0.69, blue: 0.43)
@@ -16,14 +16,14 @@ struct Dashboard: View {
             DashboardSurface(model: model)
                 .environment(\.instrumentMetrics, InstrumentMetrics(scale: scale, displayScale: displayScale))
         }
-        .environment(\.instrumentPalette, model.colorPalette)
+        .environment(\.instrumentTheme, model.theme)
         .background(Color.black)
     }
 }
 
 private struct DashboardSurface: View {
     @ObservedObject var model: AppModel
-    @Environment(\.instrumentPalette) private var palette
+    @Environment(\.instrumentTheme) private var theme
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.instrumentMetrics) private var metrics
     private func m(_ value: CGFloat) -> CGFloat { metrics.size(value) }
@@ -42,7 +42,7 @@ private struct DashboardSurface: View {
                         Text(error).font(.system(size: m(12)))
                         Spacer()
                         Button(model.text("macOS Settings")) { model.openPrivacy() }
-                    }.foregroundStyle(Palette.amber)
+                    }.foregroundStyle(InterfaceColors.amber)
                 }
                 GeometryReader { geometry in
                     HStack(spacing: m(26)) {
@@ -78,15 +78,15 @@ private struct DashboardSurface: View {
                         .frame(width: m(28), height: m(23)).accessibilityHidden(true)
                     Text("SILLAGE").font(.system(size: m(23), weight: .medium, design: .rounded)).tracking(m(6))
                 }
-                Text(model.text("S O U N D ,  I N  L I G H T")).font(.system(size: m(9), weight: .medium)).foregroundStyle(Palette.secondary)
+                Text(model.text("S O U N D ,  I N  L I G H T")).font(.system(size: m(9), weight: .medium)).foregroundStyle(InterfaceColors.secondary)
             }
             Spacer(minLength: m(15))
             VStack(alignment: .trailing, spacing: m(6)) {
                 HStack(spacing: m(7)) {
-                    Circle().fill(model.mode == .system ? palette.accent : Palette.secondary).frame(width: m(5), height: m(5))
+                    Circle().fill(model.mode == .system ? theme.accent : InterfaceColors.secondary).frame(width: m(5), height: m(5))
                     Text(model.status(frame: frame)).font(.system(size: m(11), weight: .medium))
                 }
-                Text(model.displayedDeviceName).font(.system(size: m(10))).foregroundStyle(Palette.secondary).lineLimit(1)
+                Text(model.displayedDeviceName).font(.system(size: m(10))).foregroundStyle(InterfaceColors.secondary).lineLimit(1)
             }
             SettingsLink {
                 Image(systemName: "gearshape").font(.system(size: m(14)))
@@ -96,8 +96,8 @@ private struct DashboardSurface: View {
             Button { Task { if model.mode == .system { await model.stop() } else { await model.startSystem() } } } label: {
                 Label(model.text(model.busy ? "Connecting…" : model.mode == .system ? "Pause" : "Listen"), systemImage: model.mode == .system ? "pause.fill" : "play.fill")
                     .font(.system(size: m(11), weight: .medium)).padding(.horizontal, m(13)).padding(.vertical, m(10))
-            }.buttonStyle(.plain).background(palette.accent.opacity(0.12), in: RoundedRectangle(cornerRadius: m(6)))
-                .foregroundStyle(palette.accent).disabled(model.busy)
+            }.buttonStyle(.plain).background(theme.accent.opacity(0.12), in: RoundedRectangle(cornerRadius: m(6)))
+                .foregroundStyle(theme.accent).disabled(model.busy)
             Button { model.toggleFullscreen() } label: { Image(systemName: "arrow.up.left.and.arrow.down.right").font(.system(size: m(13))) }
                 .buttonStyle(.plain).help(model.text("Full Screen") + " · ⌃⌘F")
                 .accessibilityLabel(model.text("Full Screen"))
@@ -106,9 +106,9 @@ private struct DashboardSurface: View {
     private func footer(frame: AnalysisFrame) -> some View {
         HStack(spacing: m(18)) {
             Text(model.mode == .idle ? model.text("STEREO PCM") : model.localizer.format("%.1f kHz · STEREO", frame.sampleRate / 1000))
-            Circle().fill(Palette.line).frame(width: m(3), height: m(3))
+            Circle().fill(InterfaceColors.line).frame(width: m(3), height: m(3))
             Text("FFT 8192")
-            if frame.droppedFrames > 0 { Text(model.localizer.format("%@ dropped frames", String(frame.droppedFrames))).foregroundStyle(Palette.amber) }
+            if frame.droppedFrames > 0 { Text(model.localizer.format("%@ dropped frames", String(frame.droppedFrames))).foregroundStyle(InterfaceColors.amber) }
             Spacer()
             Toggle(model.text("Peaks"), isOn: $model.showPeaks).toggleStyle(.checkbox)
             Toggle("OLED", isOn: $model.protectOLED).toggleStyle(.checkbox).help(model.text("Pure black, subtle pixel shifting, and dimming during silence. Does not guarantee protection against burn-in."))
@@ -121,8 +121,8 @@ private struct DashboardSurface: View {
                 Button(model.text("60 Hz · smooth")) { model.targetFPS = 60 }
                 Button(model.text("30 Hz · low power")) { model.targetFPS = 30 }
             }.menuStyle(.borderlessButton).fixedSize().help(model.text("Target refresh rate"))
-        }.font(.system(size: m(10), design: .monospaced)).foregroundStyle(Palette.secondary)
-            .tint(palette.accent)
+        }.font(.system(size: m(10), design: .monospaced)).foregroundStyle(InterfaceColors.secondary)
+            .tint(theme.accent)
     }
     private func writeDiagnostics(frame: AnalysisFrame) {
         let args = ProcessInfo.processInfo.arguments
@@ -151,11 +151,11 @@ struct InstrumentPanel<Content: View>: View {
             HStack {
                 Text(title).tracking(metrics.size(2)).foregroundStyle(Color(white: 0.76))
                 Spacer()
-                Text(detail).foregroundStyle(Palette.secondary)
+                Text(detail).foregroundStyle(InterfaceColors.secondary)
             }.font(.system(size: metrics.size(10), weight: .medium, design: .monospaced))
             content
         }
         .padding(metrics.size(23))
-        .overlay(RoundedRectangle(cornerRadius: metrics.size(8)).strokeBorder(Palette.line, lineWidth: metrics.hairline))
+        .overlay(RoundedRectangle(cornerRadius: metrics.size(8)).strokeBorder(InterfaceColors.line, lineWidth: metrics.hairline))
     }
 }
