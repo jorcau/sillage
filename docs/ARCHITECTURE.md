@@ -55,7 +55,7 @@ The release executable targets arm64. Accelerate supplies optimized analysis pri
 
 The target is 60 Hz, with a 30 Hz option. TimelineView requests updates; it does not guarantee GPU presentation timing. The layout scales from a reference width of about 1,500 points. Actual GPU cadence and power consumption on a physical OLED 4K display still need validation. Direct Metal rendering can be added if profiling or a future spectrogram warrants it.
 
-Text and geometry are calculated at final Canvas dimensions, with no magnification after rasterization. Grids, bars, and OLED drift align with physical pixels. Pure black, moderate default brightness, and silence dimming reduce fixed-element exposure without guaranteeing protection from burn-in.
+Text and geometry are calculated at final Canvas dimensions, with no magnification after rasterization. Grids, bars, and OLED drift align with physical pixels. Pure black, adjustable brightness, and silence dimming reduce fixed-element exposure without guaranteeing protection from burn-in.
 
 ## Extension points
 
@@ -68,6 +68,10 @@ New analysis runs on the analysis queue and publishes a bounded snapshot through
 
 Language selection is a UI concern. It never restarts the capture or DSP pipeline.
 
-InstrumentPalette supplies gradient colors and control accents through a SwiftUI environment value. Settings saves the selected palette in UserDefaults; missing or unknown values fall back to Mint. Changes redraw the views without touching audio state. Neutral backgrounds, grids, and warning colors stay independent of the selected palette.
+InstrumentTheme supplies gradient colors and control accents through a SwiftUI environment value. Settings saves the selected theme in UserDefaults, falling back to the legacy colorPalette key when reading earlier preferences; missing or unknown values fall back to Mint. Changes redraw the views without touching audio state. Neutral backgrounds, grids, and warning colors stay independent of the selected theme.
 
-Canvas applies shared gradients across the spectrum's frequency axis and the meters' fixed dBFS scale. Goniometer colors span the trace's bounds, preserving its fixed-gain coordinates. Gradients use a bounded set of color stops; no per-pixel CPU rasterization or additional audio analysis is needed. Mint preserves the original appearance.
+Each theme defines a frequency or level axis for the spectrum. Canvas anchors shared gradients to the full logarithmic frequency range or the fixed −90 to 0 dBFS plot, including peak holds. Settings previews use the same orientation. Both meter layouts use their fixed −60 to 0 dBFS scale. Goniometer colors span the trace's bounds, preserving its fixed-gain coordinates. Gradients use a bounded set of color stops; no per-pixel CPU rasterization or additional audio analysis is needed. Mint preserves the original appearance.
+
+VisualizerLayout defines the five saved presentation choices. DashboardInstruments composes the existing spectrum, goniometer, and compact meters, plus FocusedLevelView for large vertical meters and AnalogMeterView for the traditional dial presentation. All instruments read the same AnalysisFrame inside one TimelineView. Interactive header/footer controls stay outside this animation loop so native popup selection remains stable during capture; their status readout and whole-pixel OLED drift update once per second. Switching layouts only updates presentation state: it neither restarts capture nor resets smoothing and peak holds. New layouts can compose instruments without introducing another analysis pipeline.
+
+AnalogMeterScale maps the existing 300 ms RMS result to a voltage-based dial with a −18 dBFS reference and a +3 VU end stop. Scale tests cover calibration, monotonicity, voltage ratios, silence, and invalid inputs. Static dial artwork and the moving needles are separate native Canvas layers at final dimensions; they use no external images or new audio processing. Hardware VU ballistics and calibration are not claimed.

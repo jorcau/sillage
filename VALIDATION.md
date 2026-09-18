@@ -40,6 +40,17 @@ Initial measurement: **5 s of stereo audio analyzed in about 0.020 s**, includin
 - Confirmed the selected palette is written to the app's persistent preferences.
 - The five gradient palettes preserve the black background, fixed instrument scales, and separate warning/clipping indicators. Mint retains the original single-color appearance.
 
+## Themes, views, and analog meters (0.3.0)
+
+- The arm64 release build and packaged app signature passed. All **16 tests passed**, including two new analog-scale tests for the −18 dBFS reference, end stops, monotonicity, voltage ratios, silence, and invalid values.
+- Inspected all nine theme previews in English and French, including their frequency/level labels. Thermal's vertical spectrum gradient and held peaks were inspected during system capture.
+- Inspected dashboard, large digital meters, spectrum, stereo, and analog views. View shortcuts worked, and the selected theme/view were present in persistent preferences.
+- Reproduced the unstable nested view menu during animation. Replaced it with a direct native picker outside the instrument TimelineView; mouse selection remained usable after leaving the popup open during silent-demo analysis and live system capture.
+- Confirmed the brightness control starts at **100%**.
+- Inspected analog artwork and moving needles at the available window size. A left-only silent demo moved the left needle to its upper stop while the right needle rested at zero voltage.
+- Captured an English analog-view screenshot using the silent demo and stripped its metadata before publication.
+- No new claim of hardware VU calibration, physical 4K OLED validation, or measured GPU presentation cadence is made.
+
 ## Live capture
 
 An 8 s stereo test signal, 997 Hz left / 1,499 Hz right, near −48 dBFS, was played through the system player and captured:
