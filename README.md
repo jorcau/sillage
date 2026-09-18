@@ -10,7 +10,7 @@ A native macOS audio visualizer for Apple Silicon. See your system audio without
 ![Sillage in full screen with a silent demo signal](docs/assets/sillage-preview.jpg)
 
 - Stereo RMS and peak meters, a 20 Hz–20 kHz spectrum, and a stereo goniometer.
-- Five views: dashboard, digital meters, spectrum, stereo image, and analog-style VU meters.
+- Eleven views, including analog VU meters, CRT scopes, broadcast PPM, and a hi-fi rack.
 - Nine themes, including vertical gradients by signal level, with pure black OLED backgrounds and a 60 Hz target.
 - English and French, with silent demo previews in **Settings**.
 - Local processing: no recordings, network access, extra drivers, or third-party packages.
@@ -28,11 +28,12 @@ open dist/Sillage.app
 
 Click **Listen** and allow system audio capture when macOS asks. Your selected output stays unchanged. This is an early prototype, signed locally and not notarized.
 
-Open **Settings** with the gear button or **⌘,** to choose your theme and language or try a silent demo. Switch views from the top bar or with **⌘1–5**. Use **⌃⌘F** for full screen, **⌘R** to listen, and **⌘.** to pause.
+Open **Settings** with the gear button or **⌘,** to choose your theme and language or try a silent demo. Switch views from the top bar or the **View** menu. Use **⌃⌘F** for full screen, **⌘R** to listen, and **⌘.** to pause.
 
 ## More information
 
 - [User guide](docs/USAGE.md) — permissions, settings, demos, and display controls.
+- [Analog gallery](docs/ANALOG-VIEWS.md) — six hardware-inspired views and their measurements.
 - [Architecture and measurements](docs/ARCHITECTURE.md) — capture, analysis, rendering, and planned modules.
 - [Development](docs/DEVELOPMENT.md) — builds, tests, and localization.
 - [Validation](VALIDATION.md) — tested behavior and current limitations.

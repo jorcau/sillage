@@ -52,6 +52,17 @@ Initial measurement: **5 s of stereo audio analyzed in about 0.020 s**, includin
 - A later system-capture reconnection stalled inside Core Audio’s AudioDeviceStart. A fresh Sillage process and a separate system-player attempt with digital silence did not clear it. Demo rendering remained functional; recovery of the macOS audio service still needs verification.
 - No new claim of hardware VU calibration, physical 4K OLED validation, or measured GPU presentation cadence is made.
 
+## Analog instrument collection (0.4.0)
+
+- The arm64 release build and packaged app signature passed. All **19 tests passed**.
+- New tests cover waveform amplitude, stereo polarity, a fixed window, and the 1,024-column bound at 44.1, 48, and 96 kHz. Quasi-peak tests cover 5/10 ms tone bursts, steady-state calibration, 24 dB return in 2.8 s, invalid inputs, channel isolation, and independence from processing block size.
+- Inspected all six new views in the running app: Studio Blue, Vintage Console, CRT Oscilloscope, CRT Goniometer, Broadcast PPM, and Hi-Fi Rack. Rechecked the finished artwork in native full screen, including glass, needles, lighting, and waveform persistence.
+- Verified the new shortcuts, English/French labels, saved view selection, and brightness at **100%**. The native view picker stayed open during animation and accepted mouse selection afterward.
+- Observed approximately **58–59 timeline updates/s** at the 60 Hz target during silent-demo CRT/rack rendering. This is not a GPU presentation count. The analysis benchmark processed 5 s of stereo audio in about **0.021 s**; it excludes capture and rendering.
+- Added six English screenshots generated with the silent Music demo. Removed JPEG metadata before publication.
+- Returning from the demo to system capture again remained at the macOS connection stage with zero callbacks. The earlier Core Audio reconnection limitation remains unresolved; the audio service was not restarted as part of this view update.
+- VU/PPM hardware certification, physical 4K OLED performance, and power consumption remain unverified.
+
 ## Live capture
 
 An 8 s stereo test signal, 997 Hz left / 1,499 Hz right, near −48 dBFS, was played through the system player and captured:
@@ -79,4 +90,4 @@ The first start waited for macOS and returned system error 268451843. A retry su
 - Denied/revoked permissions, macOS 14.2 and 15, protected content, and simultaneous outputs.
 - Energy profiling and end-to-end latency; the 171 ms FFT window at 48 kHz trades time resolution for frequency resolution.
 
-The instruments measure digital RMS and sample peaks, not LUFS, true peak, SPL, or calibrated analog VU.
+The instruments measure digital RMS, sample peaks, and a dedicated quasi-peak envelope, not LUFS, true peak, SPL, or certified hardware VU/PPM.

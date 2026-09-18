@@ -35,10 +35,18 @@ Use the view selector in the top bar, the macOS **View** menu, or the shortcuts 
 | Spectrum | ⌘3 | Spectrum using the entire instrument area |
 | Stereo | ⌘4 | Goniometer and correlation display using the entire instrument area |
 | Analog VU | ⌘5 | Two illuminated analog-style dials with independent L/R needles |
+| Studio Blue | ⌘6 | Blue backlit VU dials, white needles, and a graphite cabinet |
+| Vintage Console | ⌘7 | Cream VU dials, red needles, brushed metal, and walnut cheeks |
+| CRT Oscilloscope | ⌘8 | Green stereo waveform with a fixed sweep and phosphor persistence |
+| CRT Goniometer | ⌘9 | Round amber stereo scope, correlation needle, and clipping lamps |
+| Broadcast PPM | ⌘0 | Two vertical quasi-peak meters with fast attack and slow return |
+| Hi-Fi Rack | ⌘− | Stacked stereo VUs, waveform CRT, correlation dial, and clipping lamps |
 
 Switching views keeps the capture session, analysis history, theme, and display controls. Your view is saved for the next launch. Every view supports native full screen. Digital meters use the same dBFS measurements as the dashboard.
 
-The analog view uses original cream dials, black/red markings, recessed metal frames, glass reflections, and independent needles. **0 VU = −18 dBFS RMS**; the face ends at +3 VU, while red lamps indicate digital clipping. The needle follows the existing 300 ms RMS measurement on a voltage-based scale. This is an analog-style visualization, not a calibrated mechanical VU instrument. Its classic warm face stays consistent across themes; interface controls follow the selected theme.
+The analog VU faces use recessed frames, glass reflections, and independent needles. **0 VU = −18 dBFS RMS**; the face ends at +3 VU, while red lamps indicate digital clipping. The needle follows the existing 300 ms RMS measurement on a voltage-based scale. This is an analog-style visualization, not a calibrated mechanical VU instrument.
+
+The CRT oscilloscope shows a fixed 20 ms stereo window at normal sample rates, with no automatic gain. Broadcast PPM uses a separate quasi-peak detector: approximately 10 ms integration and a 24 dB return in 2.8 s. Its **TEST = −18 dBFS** reference is distinct from the RMS-based VU scale. See the [analog gallery](ANALOG-VIEWS.md) for screenshots and measurement details.
 
 ![Sillage analog-style meters with a silent demo](assets/sillage-analog-preview.jpg)
 
@@ -62,7 +70,7 @@ Frequency themes follow the logarithmic 20 Hz–20 kHz axis. Level themes follow
 
 Meter colors follow their fixed −60 to 0 dBFS scale in both meter layouts. The goniometer blends colors across the visible trace without changing its geometry or gain. Its colors are decorative, not an additional measurement.
 
-Colors update immediately across all views and controls, whether capture is running or paused. The choice is saved for the next launch, including selections from earlier versions. Choose Mint to restore the original appearance.
+Colors update immediately across digital instruments and interface controls, whether capture is running or paused. Analog cabinets, dial faces, and CRT phosphors keep their characteristic materials and colors. The choice is saved for the next launch, including selections from earlier versions. Choose Mint to restore the original digital appearance.
 
 Every theme keeps the pure black background, neutral grid and text, and existing brightness/OLED controls. Warning indicators remain amber and clipping remains red. The app's mint logo and Dock icon retain their brand color.
 
@@ -72,7 +80,7 @@ The bottom bar provides peak-hold visibility, OLED precautions, instrument brigh
 
 OLED mode uses pure black, subtle movement in whole physical pixels, and dimming during silence. It does not prevent burn-in. System sleep remains enabled.
 
-The meters show digital RMS and sample peaks in dBFS. They are not calibrated analog VU, LUFS, true peak, or SPL meters. A 60 Hz target is not a guarantee of 60 presented frames per second.
+The meters show digital RMS, sample peaks, or the dedicated PPM quasi-peak envelope. They are not certified hardware VU/PPM, LUFS, true peak, or SPL meters. A 60 Hz target is not a guarantee of 60 presented frames per second.
 
 ## Keyboard shortcuts
 
@@ -81,6 +89,8 @@ The meters show digital RMS and sample peaks in dBFS. They are not calibrated an
 | ⌘, | Open Settings |
 | ⌘D | Open Settings for demo previews |
 | ⌘1 / ⌘2 / ⌘3 / ⌘4 / ⌘5 | Dashboard / Meters / Spectrum / Stereo / Analog VU |
+| ⌘6 / ⌘7 / ⌘8 / ⌘9 | Studio Blue / Vintage Console / CRT Oscilloscope / CRT Goniometer |
+| ⌘0 / ⌘− | Broadcast PPM / Hi-Fi Rack |
 | ⌘R | Start system capture |
 | ⌘. | Pause |
 | ⌃⌘F | Toggle full screen |

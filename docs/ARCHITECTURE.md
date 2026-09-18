@@ -33,7 +33,7 @@ Core Audio tap → private aggregate → C callback → preallocated SPSC ring
 |---|---|
 | SystemCapture | HAL lifecycle, capture format, output changes, and errors |
 | CRealtime | Stereo Float32 copying, acquire/release atomics, and loss counters |
-| AudioAnalysis | FFT, levels, peak hold, correlation, and phase points |
+| AudioAnalysis | FFT, RMS/sample peaks, quasi-peak envelopes, waveform, correlation, and phase points |
 | AppLocalization | Language resolution and localized resources |
 | SillageApp | Lifecycle, Settings, controls, and vector rendering |
 
@@ -48,6 +48,8 @@ An output or tap-format change restarts capture and rebuilds analysis for the ne
 - **Stereo spectrum:** averages L/R FFT power before converting to dB, preserving antiphase signals. One active channel measures 3 dB below the same signal on both channels. This is a peak-amplitude spectrum, without noise-density normalization or slope compensation.
 - **Smoothing:** 28 ms attack, 200 ms release, 1.5 s peak hold, then 12 dB/s decay. Display refresh is independent of FFT updates.
 - **Goniometer:** X=(L−R)/2 and Y=(L+R)/2 at fixed gain. Mono is vertical; antiphase is horizontal. Normalized correlation integrates over 150 ms and reports zero at insufficient energy. The last 2,048 samples are decimated to 1,024 points.
+- **Waveform:** a 20 ms window, triggered on a rising zero crossing in the stronger channel. Both channels share the trigger and sample window. Up to 1,024 min/max columns preserve extrema with fixed ±1 full-scale gain. The window is capped at 4,096 samples; its actual duration is displayed at unusually high sample rates.
+- **Quasi-peak:** independent sample-by-sample L/R envelopes, with approximately 10 ms integration and 24 dB release in 2.8 s. The display's TEST mark is −18 dBFS; its relative scale runs from −12 to +12 dB. This is an approximation inspired by historical [EBU Tech 3205](https://tech.ebu.ch/docs/tech/tech3205.pdf), not a certified IEC/EBU instrument, true-peak detector, or loudness measurement.
 
 ## Apple Silicon and OLED rendering
 
@@ -61,7 +63,7 @@ Text and geometry are calculated at final Canvas dimensions, with no magnificati
 
 New analysis runs on the analysis queue and publishes a bounded snapshot through AnalysisFrame.
 
-- **Waveform:** multiresolution min/max envelopes from samples before the FFT.
+- **Extended waveform:** configurable timebase and longer multiresolution history beyond the current short triggered window.
 - **LUFS / true peak:** separate K-weighting, gating, and oversampling modules validated against reference vectors.
 - **Spectrogram:** circular FFT-column storage and a Metal texture.
 - **Metadata and artwork:** an asynchronous provider separate from capture and analysis, with caching. Confirm each player's public APIs and permissions first.
@@ -70,8 +72,10 @@ Language selection is a UI concern. It never restarts the capture or DSP pipelin
 
 InstrumentTheme supplies gradient colors and control accents through a SwiftUI environment value. Settings saves the selected theme in UserDefaults, falling back to the legacy colorPalette key when reading earlier preferences; missing or unknown values fall back to Mint. Changes redraw the views without touching audio state. Neutral backgrounds, grids, and warning colors stay independent of the selected theme.
 
-Each theme defines a frequency or level axis for the spectrum. Canvas anchors shared gradients to the full logarithmic frequency range or the fixed −90 to 0 dBFS plot, including peak holds. Settings previews use the same orientation. Both meter layouts use their fixed −60 to 0 dBFS scale. Goniometer colors span the trace's bounds, preserving its fixed-gain coordinates. Gradients use a bounded set of color stops; no per-pixel CPU rasterization or additional audio analysis is needed. Mint preserves the original appearance.
+Each theme defines a frequency or level axis for the spectrum. Canvas anchors shared gradients to the full logarithmic frequency range or the fixed −90 to 0 dBFS plot, including peak holds. Settings previews use the same orientation. Both digital meter layouts use their fixed −60 to 0 dBFS scale. Digital goniometer colors span the trace's bounds, preserving its fixed-gain coordinates. Gradients use a bounded set of color stops; no per-pixel CPU rasterization or additional audio analysis is needed. Mint preserves the original appearance. Analog faces and CRT phosphors use fixed material colors.
 
-VisualizerLayout defines the five saved presentation choices. DashboardInstruments composes the existing spectrum, goniometer, and compact meters, plus FocusedLevelView for large vertical meters and AnalogMeterView for the traditional dial presentation. All instruments read the same AnalysisFrame inside one TimelineView. Interactive header/footer controls stay outside this animation loop so native popup selection remains stable during capture; their status readout and whole-pixel OLED drift update once per second. Switching layouts only updates presentation state: it neither restarts capture nor resets smoothing and peak holds. New layouts can compose instruments without introducing another analysis pipeline.
+VisualizerLayout defines eleven saved presentation choices. DashboardInstruments composes the spectrum, digital meters, analog dials, CRT screens, and PPM faces. HiFiRackView combines the same instruments in stacked cabinets. All instruments read the same AnalysisFrame inside one TimelineView. Interactive header/footer controls stay outside this animation loop so native popup selection remains stable during capture; their status readout and whole-pixel OLED drift update once per second. Switching layouts only updates presentation state: it neither restarts capture nor resets smoothing and peak holds. New layouts can compose instruments without introducing another analysis pipeline.
 
 AnalogMeterScale maps the existing 300 ms RMS result to a voltage-based dial with a −18 dBFS reference and a +3 VU end stop. Scale tests cover calibration, monotonicity, voltage ratios, silence, and invalid inputs. Static dial artwork and the moving needles are separate native Canvas layers at final dimensions; they use no external images or new audio processing. Hardware VU ballistics and calibration are not claimed.
+
+HardwareCabinet renders bounded procedural metal grain, wood grain, bevels, and screw heads. CRTScreen separates static glass/grid artwork from signal paths and keeps at most four prior traces for about 200 ms of phosphor persistence. Glow and reflection are presentation effects; they do not change gain, correlation, or measured levels. All artwork is original vector geometry rendered at the current window size.
