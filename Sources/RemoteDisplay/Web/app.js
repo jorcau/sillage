@@ -35,7 +35,9 @@ let strings = {},
   lastDraw = 0,
   lastReadout = 0,
   wakeLock = null,
-  installPrompt = null;
+  installPrompt = null,
+  connectionState = "connecting",
+  overlayKind = null;
 // The private key is used once and removed from the address bar before network requests.
 let joinKey = new URLSearchParams(location.hash.slice(1)).get("join");
 if (location.hash) history.replaceState(null, "", location.pathname);
@@ -47,10 +49,12 @@ function save() {
   } catch {}
 }
 function connection(state) {
-  $("connection").dataset.state = state;
-  $("connection").textContent = t(state);
+  connectionState = state;
+  if ($("connection").dataset.state !== state) $("connection").dataset.state = state;
+  if ($("connection").textContent !== t(state)) $("connection").textContent = t(state);
 }
 function overlay(kind) {
+  overlayKind = kind;
   $("empty").hidden = !kind;
   if (kind) {
     $("emptyTitle").textContent = t(`${kind}Title`);
@@ -80,7 +84,8 @@ async function language() {
     isSecureContext ? "installSecure" : "installLocal",
   );
   $("instruments").setAttribute("aria-label", t("instruments"));
-  connection(connected ? "live" : "connecting");
+  connection(connectionState);
+  overlay(overlayKind);
   readout();
 }
 function readout() {
@@ -111,6 +116,15 @@ function schedule() {
   clearTimeout(retryTimer);
   if (!document.hidden) retryTimer = setTimeout(() => connect(), 2000);
 }
+async function request(path, options = {}) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 5000);
+  try {
+    return await fetch(path, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(timeout);
+  }
+}
 async function connect() {
   closeStream();
   const generation = ++attempt;
@@ -119,21 +133,21 @@ async function connect() {
   try {
     if (joinKey) {
       const key = joinKey;
-      joinKey = null;
-      const response = await fetch("/api/pair", {
+      const response = await request("/api/pair", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ key }),
         cache: "no-store",
       });
       if (generation !== attempt) return;
+      if (joinKey === key) joinKey = null;
       if (!response.ok) {
         overlay(response.status === 429 ? "busy" : "expired");
         connection("offline");
         return;
       }
     }
-    const session = await fetch("/api/session", { cache: "no-store" });
+    const session = await request("/api/session", { cache: "no-store" });
     if (generation !== attempt || document.hidden) return;
     if (session.status === 401 || session.status === 403) {
       overlay("pair");
@@ -163,10 +177,12 @@ async function connect() {
       connection("live");
       overlay(null);
       if (options.follow) {
+        const viewChanged = options.view !== next.presentation.view;
+        const themeChanged = options.theme !== next.presentation.theme;
         options.view = next.presentation.view;
         options.theme = next.presentation.theme;
-        $("view").value = options.view;
-        $("theme").value = options.theme;
+        if (viewChanged) $("view").value = options.view;
+        if (themeChanged) $("theme").value = options.theme;
       }
     };
     stream.onerror = () => {
@@ -273,6 +289,15 @@ window.addEventListener("pageshow", (event) => {
   if (event.persisted) connect();
 });
 window.addEventListener("online", () => connect());
+// Scanning a replacement link can reuse the current tab through fragment navigation.
+window.addEventListener("hashchange", () => {
+  const key = new URLSearchParams(location.hash.slice(1)).get("join");
+  if (location.hash) history.replaceState(null, "", location.pathname);
+  if (key) {
+    joinKey = key;
+    connect();
+  }
+});
 window.addEventListener("beforeinstallprompt", (event) => {
   event.preventDefault();
   installPrompt = event;
@@ -307,7 +332,7 @@ function animate(now) {
 }
 await language();
 overlay("pair");
-await connect();
 requestAnimationFrame(animate);
+connect();
 if ("serviceWorker" in navigator && isSecureContext)
   navigator.serviceWorker.register("/sw.js").catch(() => {});
