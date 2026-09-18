@@ -76,6 +76,8 @@ Every theme keeps the pure black background, neutral grid and text, and existing
 
 ## Display controls
 
+For a second screen on your phone, open **Settings → Phone display** on the Mac. Enable local sharing and scan the QR code. See the [phone guide](PHONE-DISPLAY.md) for mobile controls and connection help.
+
 The bottom bar provides peak-hold visibility, OLED precautions, instrument brightness (100% at launch), and a 60 or 30 Hz target refresh rate. Full screen uses native macOS window behavior.
 
 OLED mode uses pure black, subtle movement in whole physical pixels, and dimming during silence. It does not prevent burn-in. System sleep remains enabled.

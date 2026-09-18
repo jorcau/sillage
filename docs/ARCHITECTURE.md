@@ -6,7 +6,7 @@ Core Audio Process Taps are available from macOS 14.2. Sillage uses `CATapDescri
 
 The tap feeds a private aggregate device created only for capture and destroyed on stop. No code writes the default output, device volume, or hardware sample rate. Analysis uses the sample rate reported by the tap, which may differ from the physical output device.
 
-`NSAudioCaptureUsageDescription` explains the permission. No microphone permission is requested. Audio is neither recorded nor transmitted. The global mix can contain multiple apps and outputs; it is not an electrical measurement of a DAC's analog output.
+`NSAudioCaptureUsageDescription` explains the permission. No microphone permission is requested. Audio is analyzed in memory without recording. Optional Phone display sharing sends bounded visualization snapshots over the local network. The global mix can contain multiple apps and outputs; it is not an electrical measurement of a DAC's analog output.
 
 ScreenCaptureKit is an alternative for a future macOS 13 backend, but its screen-content filtering model adds unnecessary complexity for the current audio-only target.
 
@@ -35,6 +35,7 @@ Core Audio tap → private aggregate → C callback → preallocated SPSC ring
 | CRealtime | Stereo Float32 copying, acquire/release atomics, and loss counters |
 | AudioAnalysis | FFT, RMS/sample peaks, quasi-peak envelopes, waveform, correlation, and phase points |
 | AppLocalization | Language resolution and localized resources |
+| RemoteDisplay | Local HTTP server, viewer pairing, bounded display snapshots, and bundled web renderer |
 | SillageApp | Lifecycle, Settings, controls, and vector rendering |
 
 The HAL callback performs no allocations, locking, FFTs, or SwiftUI work. The 65,536-frame ring accepts interleaved or planar Float32. On overflow, it discards the incoming block and increments a counter without overwriting data being read. A serial queue drains the ring every 8 ms. A short lock protects snapshots outside the audio callback. Teardown stops the callback before freeing its ring.
@@ -79,3 +80,15 @@ VisualizerLayout defines eleven saved presentation choices. DashboardInstruments
 AnalogMeterScale maps the existing 300 ms RMS result to a voltage-based dial with a −18 dBFS reference and a +3 VU end stop. Scale tests cover calibration, monotonicity, voltage ratios, silence, and invalid inputs. Static dial artwork and the moving needles are separate native Canvas layers at final dimensions; they use no external images or new audio processing. Hardware VU ballistics and calibration are not claimed.
 
 HardwareCabinet renders bounded procedural metal grain, wood grain, bevels, and screw heads. CRTScreen separates static glass/grid artwork from signal paths and keeps at most four prior traces for about 200 ms of phosphor persistence. Glow and reflection are presentation effects; they do not change gain, correlation, or measured levels. All artwork is original vector geometry rendered at the current window size.
+
+## Local phone renderer
+
+The optional Network.framework listener serves its own bundled HTML, CSS, JavaScript, icons, and translations on TCP port 8765. A separate queue reads FrameStore at about 30 Hz and sends versioned JSON snapshots through Server-Sent Events. No network work runs in the HAL callback or analysis queue. A slow viewer has only one outstanding send; intermediate frames are dropped, and a send stalled for more than 5 s closes that viewer.
+
+The wire format includes L/R RMS, sample peak, peak hold, quasi-peak and clipping; 160 spectrum/hold bins; up to 256 phase points and 256 min/max waveform columns; correlation; sample rate; and the Mac's view, theme, and source mode. Values are finite, bounded, and rounded. Waveform reduction preserves extrema. No device names, playback metadata, recordings, or continuous audio playback stream are sent.
+
+The browser draws with Canvas 2D and requestAnimationFrame at a selectable 60/30 Hz target. Static material layers are cached. Backing resolution is capped at device pixel ratio 2 and four million pixels. Only three recent CRT traces are retained. Each phone can follow the Mac or keep its own view/theme. Hidden pages close the event stream and suspend drawing; stale measurements clear after about 1.8 s.
+
+Sharing starts disabled and is not enabled automatically on the next launch. Each activation creates a fresh private link. Its fragment is exchanged for an HttpOnly, SameSite=Strict session cookie and removed from the address bar. Stopping sharing closes clients and revokes all sessions. The listener accepts private/local peers, validates Host and Origin, serves an explicit asset allowlist, and limits request sizes, connection lifetime, pairing attempts, and concurrent viewers. It provides no capture-control endpoint. This is an HTTP service for a trusted local network, with no router configuration or cloud relay.
+
+See [Phone display](PHONE-DISPLAY.md) for setup and the distinction between the local browser viewer and an installable HTTPS PWA. [MDN's SSE guide](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events) describes the one-way transport and browser connection limits.

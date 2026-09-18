@@ -11,7 +11,7 @@ open dist/Sillage.app
 
 The script accepts an app output path followed by a build directory. It uses SwiftPM's native build engine to avoid a SwiftBuild property-list error observed with the local Command Line Tools. Caches remain inside the build directory. The SwiftPM `--disable-sandbox` flag concerns build subprocesses, not macOS security settings.
 
-The script embeds localization bundles, adds the capture privacy declaration, signs the app ad hoc, and verifies its signature. This is not a notarized release. The prototype's original bundle identifier is retained across its rename to preserve application identity.
+The script embeds localization and web resource bundles, adds capture/local-network privacy declarations, signs the app ad hoc, and verifies its signature. This is not a notarized release. The prototype's original bundle identifier is retained across its rename to preserve application identity.
 
 You can also open Package.swift in Xcode. Use the generated app bundle for real capture; a standalone `swift run` executable is not the intended permission flow.
 
@@ -22,6 +22,22 @@ bash scripts/test.sh
 ```
 
 Tests cover DSP calibration, stereo behavior, ring-buffer safety, processing cost, and language resolution. See [validation](../VALIDATION.md) for measured results and remaining hardware checks.
+
+The Swift suite also checks HTTP framing, host/origin restrictions, local address scope, and bounded remote display packets. Web protocol, VU scale, and translation checks require Node.js 22+ with no npm dependencies:
+
+```sh
+npm run test:web
+```
+
+To check the real packaged server, enable **Settings → Phone display**, copy its private link into a temporary file outside the repository, and run:
+
+```sh
+python3 scripts/check-remote.py /path/to/private-link.txt
+```
+
+The probe checks packaged assets, pairing, unauthorized/foreign requests, traversal rejection, and ten live frames without printing keys or cookies. Stop sharing afterward to revoke the test session. Keep private links, cookies, and diagnostic captures out of Git.
+
+The web renderer is plain JavaScript/CSS in `Sources/RemoteDisplay/Web`; no bundler is required. Rebuild the app and reload browser pages after changes. Test portrait and landscape layouts, background/foreground transitions, sharing revocation, and pairing a replacement link in an existing tab. Browser-size simulation does not replace tests on real iOS/Android devices.
 
 ## App icon
 
@@ -40,6 +56,8 @@ English is the source language for code and documentation. User-facing translati
 The app offers System, English, and French. An explicit choice is saved in UserDefaults; System resolves the first supported macOS preference, falling back to English. AppLocalizer resolves a resource bundle directly, so switching updates the app immediately without restarting capture.
 
 Localized macOS permission text lives in `Resources/<language>.lproj/InfoPlist.strings`. macOS chooses that language independently of the in-app setting.
+
+The phone renderer has independent English/French JSON resources in `Sources/RemoteDisplay/Web/locales`. Its selected language affects only that browser.
 
 To add a language, add its resources, update AppLanguage and supported language resolution, expose it in Settings, and include the corresponding bundle localization. Test regional matching, unsupported-language fallback, formatted measurements, and the built app outside the build directory.
 

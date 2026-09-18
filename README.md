@@ -13,7 +13,8 @@ A native macOS audio visualizer for Apple Silicon. See your system audio without
 - Eleven views, including analog VU meters, CRT scopes, broadcast PPM, and a hi-fi rack.
 - Nine themes, including vertical gradients by signal level, with pure black OLED backgrounds and a 60 Hz target.
 - English and French, with silent demo previews in **Settings**.
-- Local processing: no recordings, network access, extra drivers, or third-party packages.
+- Optional phone display over local Wi-Fi, paired with a private QR code.
+- Local processing: no recordings, cloud service, extra drivers, or third-party packages.
 
 ## Get started
 
@@ -34,6 +35,7 @@ Open **Settings** with the gear button or **⌘,** to choose your theme and lang
 
 - [User guide](docs/USAGE.md) — permissions, settings, demos, and display controls.
 - [Analog gallery](docs/ANALOG-VIEWS.md) — six hardware-inspired views and their measurements.
+- [Phone display](docs/PHONE-DISPLAY.md) — local pairing, mobile controls, and PWA limitations.
 - [Architecture and measurements](docs/ARCHITECTURE.md) — capture, analysis, rendering, and planned modules.
 - [Development](docs/DEVELOPMENT.md) — builds, tests, and localization.
 - [Validation](VALIDATION.md) — tested behavior and current limitations.

@@ -63,6 +63,17 @@ Initial measurement: **5 s of stereo audio analyzed in about 0.020 s**, includin
 - Returning from the demo to system capture again remained at the macOS connection stage with zero callbacks. The earlier Core Audio reconnection limitation remains unresolved; the audio service was not restarted as part of this view update.
 - VU/PPM hardware certification, physical 4K OLED performance, and power consumption remain unverified.
 
+## Local phone display (0.5.0)
+
+- The arm64 release build and packaged app signature passed. All **23 Swift tests** and **3 web tests** passed.
+- New Swift checks cover incremental HTTP parsing, ambiguous framing, request limits, host/origin restrictions, local address scope, finite bounded snapshots, stereo polarity, and waveform extrema. Web checks cover protocol validation, VU calibration, and English/French key coverage.
+- A probe against the running packaged app verified every bundled web asset, pairing, session cookies, unauthorized access rejection, host/origin rejection, traversal rejection, and ten increasing live frames. Test snapshots stayed below 13 KB. Testing used the silent Music demo; no new system-capture success is claimed.
+- Inspected the web interface at **390 × 844** and **844 × 390** browser viewport sizes, including the dashboard, analog meters, Studio Blue, CRT views, PPM, and hi-fi rack. Checked mobile controls, English/French switching, independent view selection, and landscape Focus mode.
+- Stopping sharing disconnected the viewer and cleared stale levels. Restarting sharing rotated the private link and rejected the previous session. Pairing with the replacement link in an already-open tab succeeded.
+- The server serves resources from the app's embedded bundle. It no longer attempts to open a developer build-directory bundle when running as a packaged app.
+- Actual iPhone/Android browsers, camera scanning, phone sleep/wake, Wi-Fi roaming, sustained power use, and physical-device frame rates still need validation. The 60 Hz option is a render target; measurements arrive at about 30 Hz.
+- The viewer runs over local HTTP. HTTPS-only PWA installation, service-worker behavior on a secure deployment, and screen wake lock have not been validated on phones.
+
 ## Live capture
 
 An 8 s stereo test signal, 997 Hz left / 1,499 Hz right, near −48 dBFS, was played through the system player and captured:
