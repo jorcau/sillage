@@ -32,7 +32,7 @@ final class AppModel: ObservableObject {
     }
     @Published var deviceName = "Audio output unchanged"
     @Published var demoSignal = DemoSignal.music
-    @Published var brightness = 0.68
+    @Published var brightness = 1.0
     @Published var showPeaks = true
     @Published var protectOLED = true
     @Published var targetFPS = 60
