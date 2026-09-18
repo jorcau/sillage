@@ -10,7 +10,7 @@ A native macOS audio visualizer for Apple Silicon. See your system audio without
 ![Sillage in full screen with a silent demo signal](docs/assets/sillage-preview.jpg)
 
 - Stereo RMS and peak meters, a 20 Hz–20 kHz spectrum, and a stereo goniometer.
-- Pure black OLED theme, sharp fullscreen rendering, and a 60 Hz target.
+- Five multicolor palettes plus classic mint, pure black OLED backgrounds, and a 60 Hz target.
 - English and French, with silent demo previews in **Settings**.
 - Local processing: no recordings, network access, extra drivers, or third-party packages.
 
@@ -27,7 +27,7 @@ open dist/Sillage.app
 
 Click **Listen** and allow system audio capture when macOS asks. Your selected output stays unchanged. This is an early prototype, signed locally and not notarized.
 
-Open **Settings** with the gear button or **⌘,** to choose your language or try a silent demo. Use **⌃⌘F** for full screen, **⌘R** to listen, and **⌘.** to pause.
+Open **Settings** with the gear button or **⌘,** to choose your palette and language or try a silent demo. Use **⌃⌘F** for full screen, **⌘R** to listen, and **⌘.** to pause.
 
 ## More information
 

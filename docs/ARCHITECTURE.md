@@ -67,3 +67,7 @@ New analysis runs on the analysis queue and publishes a bounded snapshot through
 - **Metadata and artwork:** an asynchronous provider separate from capture and analysis, with caching. Confirm each player's public APIs and permissions first.
 
 Language selection is a UI concern. It never restarts the capture or DSP pipeline.
+
+InstrumentPalette supplies gradient colors and control accents through a SwiftUI environment value. Settings saves the selected palette in UserDefaults; missing or unknown values fall back to Mint. Changes redraw the views without touching audio state. Neutral backgrounds, grids, and warning colors stay independent of the selected palette.
+
+Canvas applies shared gradients across the spectrum's frequency axis and the meters' fixed dBFS scale. Goniometer colors span the trace's bounds, preserving its fixed-gain coordinates. Gradients use a bounded set of color stops; no per-pixel CPU rasterization or additional audio analysis is needed. Mint preserves the original appearance.

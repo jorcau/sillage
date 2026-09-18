@@ -24,6 +24,25 @@ In **Settings → Demo previews**, choose **Music**, **Mono · 1 kHz**, **Antiph
 
 Starting a preview stops system capture. Selecting another signal while a preview is running switches the preview immediately. **Stop preview** returns to the paused state. **Listen to system audio** returns to real capture.
 
+## Color palettes
+
+Open **Settings → Color palette** and click a preview. The checkmark identifies the active choice.
+
+| Palette | Color progression |
+|---|---|
+| Mint (Default) | Original mint appearance |
+| Aurora | Blue → cyan → mint → pale lime |
+| Ember | Rose → coral → gold → cream |
+| Twilight | Blue → violet → pink → peach |
+| Prism | Blue → cyan → green → yellow → rose |
+| Lagoon | Sand → turquoise → blue → lavender |
+
+The five new palettes use multicolor gradients within each instrument. Spectrum colors follow the logarithmic frequency axis; meter colors follow the fixed −60 to 0 dBFS scale. The goniometer blends colors across the visible trace without changing its geometry or gain. Its colors are decorative, not an additional measurement.
+
+Colors update immediately across the spectrum, peak holds, meters, goniometer, and controls, including while capture is running or paused. The choice is saved for the next launch. Choose Mint to restore the original appearance.
+
+Every palette keeps the pure black background, neutral grid and text, and existing brightness/OLED controls. Warning indicators remain amber and clipping remains red. The app's mint logo and Dock icon retain their brand color.
+
 ## Display controls
 
 The bottom bar provides peak-hold visibility, OLED precautions, instrument brightness, and a 60 or 30 Hz target refresh rate. Full screen uses native macOS window behavior.

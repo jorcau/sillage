@@ -32,6 +32,14 @@ Initial measurement: **5 s of stereo audio analyzed in about 0.020 s**, includin
 - The shared waveform icon was generated at all ten standard/Retina icon sizes, embedded in the app, and the updated app's signature was verified.
 - The English fullscreen demo screenshot was refreshed and its metadata removed before publication.
 
+## Color palettes (0.2.1)
+
+- Release build and signature verification succeeded; all **14 existing tests passed**.
+- Inspected all six palette previews and the selected-state checkmark in French Settings.
+- Verified immediate palette changes during system capture, including multicolor spectrum bars, peak holds, stereo meters, and goniometer rendering.
+- Confirmed the selected palette is written to the app's persistent preferences.
+- The five gradient palettes preserve the black background, fixed instrument scales, and separate warning/clipping indicators. Mint retains the original single-color appearance.
+
 ## Live capture
 
 An 8 s stereo test signal, 997 Hz left / 1,499 Hz right, near −48 dBFS, was played through the system player and captured:
