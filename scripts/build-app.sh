@@ -14,6 +14,7 @@ BIN_PATH="$(swift build --package-path "$PROJECT_DIR" --scratch-path "$BUILD_PAT
 mkdir -p "$APP_PATH/Contents/MacOS" "$APP_PATH/Contents/Resources"
 cp "$BIN_PATH/Sillage" "$APP_PATH/Contents/MacOS/Sillage"
 cp "$PROJECT_DIR/Resources/Info.plist" "$APP_PATH/Contents/Info.plist"
+cp "$PROJECT_DIR/Resources/AppIcon.icns" "$APP_PATH/Contents/Resources/AppIcon.icns"
 # Embed SwiftPM resources so the app works outside the build directory.
 for RESOURCE_BUNDLE in "$BIN_PATH"/*.bundle; do
     [ -d "$RESOURCE_BUNDLE" ] || continue

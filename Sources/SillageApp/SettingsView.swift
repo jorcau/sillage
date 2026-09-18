@@ -45,7 +45,8 @@ struct SettingsView: View {
                         .disabled(model.mode == .system)
                     Spacer()
                     if model.mode == .demo {
-                        Image(systemName: "waveform.path").foregroundStyle(Palette.mint)
+                        SillageMark().stroke(Palette.mint, style: StrokeStyle(lineWidth: 1.2, lineCap: .round))
+                            .frame(width: 20, height: 16)
                             .accessibilityLabel(model.text("Preview running"))
                     }
                 }.disabled(model.busy)

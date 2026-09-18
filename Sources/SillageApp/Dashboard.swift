@@ -2,7 +2,7 @@ import SwiftUI
 import AudioAnalysis
 
 enum Palette {
-    static let mint = Color(red: 0.48, green: 0.87, blue: 0.73)
+    static let mint = SillageBrand.mint
     static let secondary = Color(white: 0.49)
     static let line = Color(white: 0.13)
     static let amber = Color(red: 0.88, green: 0.69, blue: 0.43)
@@ -72,7 +72,8 @@ private struct DashboardSurface: View {
         HStack(alignment: .center, spacing: m(20)) {
             VStack(alignment: .leading, spacing: m(7)) {
                 HStack(spacing: m(10)) {
-                    Image(systemName: "waveform.path").font(.system(size: m(23), weight: .light)).foregroundStyle(Palette.mint)
+                    SillageMark().stroke(Palette.mint, style: StrokeStyle(lineWidth: m(1.2), lineCap: .round, lineJoin: .round))
+                        .frame(width: m(28), height: m(23)).accessibilityHidden(true)
                     Text("SILLAGE").font(.system(size: m(23), weight: .medium, design: .rounded)).tracking(m(6))
                 }
                 Text(model.text("S O U N D ,  I N  L I G H T")).font(.system(size: m(9), weight: .medium)).foregroundStyle(Palette.secondary)
