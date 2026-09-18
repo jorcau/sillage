@@ -29,6 +29,7 @@ private struct InstrumentDrawing {
 }
 
 struct SpectrumView: View {
+    @Environment(\.instrumentPalette) private var palette
     @Environment(\.appLocalizer) private var localizer
     let frame: AnalysisFrame
     let showPeaks: Bool
@@ -57,7 +58,7 @@ struct SpectrumView: View {
                 d.label(text, x: px, y: plot.maxY + d.m(19), size: 9)
             }
             let width = plot.width / CGFloat(frame.spectrum.count)
-            let gradient = Gradient(colors: [Palette.mint.opacity(0.13), Palette.mint.opacity(0.7)])
+            let gradient = Gradient(colors: [palette.accent.opacity(0.13), palette.accent.opacity(0.7)])
             for i in frame.spectrum.indices {
                 let px = d.snap(plot.minX + CGFloat(i) * width)
                 let right = d.snap(plot.minX + (CGFloat(i) + 0.72) * width)
@@ -68,7 +69,7 @@ struct SpectrumView: View {
                     startPoint: CGPoint(x: 0, y: plot.maxY), endPoint: CGPoint(x: 0, y: plot.minY)))
                 if showPeaks && frame.spectrumHold[i] > -89 {
                     d.line(CGPoint(x: px, y: y(frame.spectrumHold[i])),
-                           CGPoint(x: right, y: y(frame.spectrumHold[i])), color: Palette.mint.opacity(0.85))
+                           CGPoint(x: right, y: y(frame.spectrumHold[i])), color: palette.peak.opacity(0.85))
                 }
             }
         }
@@ -77,6 +78,7 @@ struct SpectrumView: View {
 }
 
 struct PhaseView: View {
+    @Environment(\.instrumentPalette) private var palette
     @Environment(\.appLocalizer) private var localizer
     let frame: AnalysisFrame
     @Environment(\.instrumentMetrics) private var metrics
@@ -106,14 +108,14 @@ struct PhaseView: View {
                 if i == 0 { trail.move(to: p) } else { trail.addLine(to: p) }
             }
             // Keep antialiasing on the signal itself: continuous audio geometry is not a pixel grid.
-            context.stroke(trail, with: .color(Palette.mint.opacity(0.50)),
+            context.stroke(trail, with: .color(palette.accent.opacity(0.50)),
                            style: StrokeStyle(lineWidth: d.m(0.85), lineJoin: .round))
             let barY = size.height - d.m(28)
             d.line(CGPoint(x: d.m(8), y: barY), CGPoint(x: size.width-d.m(8), y: barY),
                    color: Palette.line, width: d.m(2))
             let marker = d.m(8) + CGFloat((frame.correlation+1)/2) * (size.width-d.m(16))
             context.fill(Path(ellipseIn: CGRect(x: marker-d.m(3), y: barY-d.m(3), width: d.m(6), height: d.m(6))),
-                         with: .color(frame.correlation < 0 ? Palette.amber : Palette.mint))
+                         with: .color(frame.correlation < 0 ? Palette.amber : palette.accent))
             d.label("−1", x: d.m(8), y: size.height-d.m(7), size: 9)
             d.label(String(format: "CORR  %+.2f", frame.correlation), x: size.width/2,
                     y: size.height-d.m(7), color: Color(white: 0.65), size: 9)
@@ -124,6 +126,7 @@ struct PhaseView: View {
 }
 
 struct LevelView: View {
+    @Environment(\.instrumentPalette) private var palette
     @Environment(\.appLocalizer) private var localizer
     let frame: AnalysisFrame
     let showPeaks: Bool
@@ -142,13 +145,13 @@ struct LevelView: View {
                 let track = CGRect(x: start, y: y, width: end-start, height: d.m(9))
                 context.fill(Path(roundedRect: track, cornerRadius: d.m(2)), with: .color(Color(white: 0.085)))
                 context.fill(Path(CGRect(x: start, y: y, width: x(level.peakDB)-start, height: d.m(9))),
-                             with: .color(Palette.mint.opacity(0.20)))
+                             with: .color(palette.accent.opacity(0.20)))
                 context.fill(Path(CGRect(x: start, y: y, width: x(level.rmsDB)-start, height: d.m(9))),
-                             with: .color(Palette.mint.opacity(0.85)))
+                             with: .color(palette.accent.opacity(0.85)))
                 if showPeaks {
                     d.line(CGPoint(x: x(level.holdDB), y: y-d.m(2)),
                            CGPoint(x: x(level.holdDB), y: y+d.m(11)),
-                           color: level.holdDB > -1 ? Palette.amber : Palette.mint, width: d.m(1.5))
+                           color: level.holdDB > -1 ? Palette.amber : palette.peak, width: d.m(1.5))
                 }
                 if level.clipped {
                     context.fill(Path(ellipseIn: CGRect(x: end+d.m(9), y: y+d.m(2), width: d.m(5), height: d.m(5))), with: .color(.red))
@@ -156,7 +159,7 @@ struct LevelView: View {
                 d.label(level.rmsDB <= -89 ? "−∞" : String(format: "%5.1f", level.rmsDB),
                         x: size.width-d.m(70), y: y+d.m(5), color: Color(white: 0.78), size: 14, anchor: .trailing)
                 d.label(level.peakDB <= -89 ? "−∞" : String(format: "%5.1f", level.peakDB),
-                        x: size.width, y: y+d.m(5), color: Palette.mint, size: 14, anchor: .trailing)
+                        x: size.width, y: y+d.m(5), color: palette.peak, size: 14, anchor: .trailing)
             }
             for db in [-60,-48,-36,-24,-18,-12,-6,0] {
                 d.label("\(db)", x: x(Float(db)), y: d.m(6), size: 9)

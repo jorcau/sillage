@@ -2,7 +2,6 @@ import SwiftUI
 import AudioAnalysis
 
 enum Palette {
-    static let mint = SillageBrand.mint
     static let secondary = Color(white: 0.49)
     static let line = Color(white: 0.13)
     static let amber = Color(red: 0.88, green: 0.69, blue: 0.43)
@@ -16,12 +15,15 @@ struct Dashboard: View {
             let scale = min(2.5, max(1, min(viewport.size.width / 1500, viewport.size.height / 820)))
             DashboardSurface(model: model)
                 .environment(\.instrumentMetrics, InstrumentMetrics(scale: scale, displayScale: displayScale))
-        }.background(Color.black)
+        }
+        .environment(\.instrumentPalette, model.colorPalette)
+        .background(Color.black)
     }
 }
 
 private struct DashboardSurface: View {
     @ObservedObject var model: AppModel
+    @Environment(\.instrumentPalette) private var palette
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.instrumentMetrics) private var metrics
     private func m(_ value: CGFloat) -> CGFloat { metrics.size(value) }
@@ -72,7 +74,7 @@ private struct DashboardSurface: View {
         HStack(alignment: .center, spacing: m(20)) {
             VStack(alignment: .leading, spacing: m(7)) {
                 HStack(spacing: m(10)) {
-                    SillageMark().stroke(Palette.mint, style: StrokeStyle(lineWidth: m(1.2), lineCap: .round, lineJoin: .round))
+                    SillageMark().stroke(SillageBrand.mint, style: StrokeStyle(lineWidth: m(1.2), lineCap: .round, lineJoin: .round))
                         .frame(width: m(28), height: m(23)).accessibilityHidden(true)
                     Text("SILLAGE").font(.system(size: m(23), weight: .medium, design: .rounded)).tracking(m(6))
                 }
@@ -81,7 +83,7 @@ private struct DashboardSurface: View {
             Spacer(minLength: m(15))
             VStack(alignment: .trailing, spacing: m(6)) {
                 HStack(spacing: m(7)) {
-                    Circle().fill(model.mode == .system ? Palette.mint : Palette.secondary).frame(width: m(5), height: m(5))
+                    Circle().fill(model.mode == .system ? palette.accent : Palette.secondary).frame(width: m(5), height: m(5))
                     Text(model.status(frame: frame)).font(.system(size: m(11), weight: .medium))
                 }
                 Text(model.displayedDeviceName).font(.system(size: m(10))).foregroundStyle(Palette.secondary).lineLimit(1)
@@ -94,8 +96,8 @@ private struct DashboardSurface: View {
             Button { Task { if model.mode == .system { await model.stop() } else { await model.startSystem() } } } label: {
                 Label(model.text(model.busy ? "Connecting…" : model.mode == .system ? "Pause" : "Listen"), systemImage: model.mode == .system ? "pause.fill" : "play.fill")
                     .font(.system(size: m(11), weight: .medium)).padding(.horizontal, m(13)).padding(.vertical, m(10))
-            }.buttonStyle(.plain).background(Palette.mint.opacity(0.12), in: RoundedRectangle(cornerRadius: m(6)))
-                .foregroundStyle(Palette.mint).disabled(model.busy)
+            }.buttonStyle(.plain).background(palette.accent.opacity(0.12), in: RoundedRectangle(cornerRadius: m(6)))
+                .foregroundStyle(palette.accent).disabled(model.busy)
             Button { model.toggleFullscreen() } label: { Image(systemName: "arrow.up.left.and.arrow.down.right").font(.system(size: m(13))) }
                 .buttonStyle(.plain).help(model.text("Full Screen") + " · ⌃⌘F")
                 .accessibilityLabel(model.text("Full Screen"))
@@ -120,7 +122,7 @@ private struct DashboardSurface: View {
                 Button(model.text("30 Hz · low power")) { model.targetFPS = 30 }
             }.menuStyle(.borderlessButton).fixedSize().help(model.text("Target refresh rate"))
         }.font(.system(size: m(10), design: .monospaced)).foregroundStyle(Palette.secondary)
-            .tint(Palette.mint)
+            .tint(palette.accent)
     }
     private func writeDiagnostics(frame: AnalysisFrame) {
         let args = ProcessInfo.processInfo.arguments

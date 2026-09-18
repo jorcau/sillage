@@ -18,6 +18,16 @@ struct SettingsView: View {
             } header: { Text(model.text("General")) }
 
             Section {
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 3), spacing: 10) {
+                    ForEach(InstrumentPalette.allCases, id: \.self) { palette in
+                        paletteButton(palette)
+                    }
+                }
+                Text(model.text("Applies instantly to instruments and controls. Your choice is saved."))
+                    .font(.caption).foregroundStyle(.secondary)
+            } header: { Text(model.text("Color palette")) }
+
+            Section {
                 Picker(model.text("Signal"), selection: Binding(
                     get: { model.demoSignal },
                     set: { signal in
@@ -45,7 +55,7 @@ struct SettingsView: View {
                         .disabled(model.mode == .system)
                     Spacer()
                     if model.mode == .demo {
-                        SillageMark().stroke(Palette.mint, style: StrokeStyle(lineWidth: 1.2, lineCap: .round))
+                        SillageMark().stroke(model.colorPalette.accent, style: StrokeStyle(lineWidth: 1.2, lineCap: .round))
                             .frame(width: 20, height: 16)
                             .accessibilityLabel(model.text("Preview running"))
                     }
@@ -53,7 +63,37 @@ struct SettingsView: View {
             } header: { Text(model.text("Demo previews")) }
         }
         .formStyle(.grouped)
-        .frame(width: 500, height: 330)
+        .frame(width: 540, height: 580)
+        .tint(model.colorPalette.accent)
         .preferredColorScheme(.dark)
+    }
+
+    private func paletteButton(_ palette: InstrumentPalette) -> some View {
+        let selected = model.colorPalette == palette
+        return Button { model.colorPalette = palette } label: {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack(spacing: 4) {
+                    Text(model.text(palette.title)).font(.system(size: 11, weight: .medium))
+                    Spacer(minLength: 0)
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundStyle(palette.accent).opacity(selected ? 1 : 0)
+                }
+                HStack(alignment: .bottom, spacing: 4) {
+                    ForEach(Array([0.3, 0.6, 0.9, 0.5, 0.75, 0.4].enumerated()), id: \.offset) { _, level in
+                        VStack(spacing: 3) {
+                            Rectangle().fill(palette.peak).frame(height: 1)
+                            Rectangle().fill(palette.accent.opacity(0.75)).frame(height: 22 * level)
+                        }.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+                    }
+                }.frame(height: 26)
+            }
+            .padding(10).frame(maxWidth: .infinity)
+            .background(Color.black, in: RoundedRectangle(cornerRadius: 8))
+            .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(selected ? palette.accent : Color(white: 0.22), lineWidth: 1))
+            .contentShape(RoundedRectangle(cornerRadius: 8))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(model.text(palette.title))
+        .accessibilityAddTraits(selected ? [.isSelected] : [])
     }
 }

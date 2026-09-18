@@ -22,6 +22,9 @@ final class AppModel: ObservableObject {
     @Published var language: AppLanguage = AppLanguage(rawValue: UserDefaults.standard.string(forKey: "appLanguage") ?? "system") ?? .system {
         didSet { UserDefaults.standard.set(language.rawValue, forKey: "appLanguage") }
     }
+    @Published var colorPalette: InstrumentPalette = InstrumentPalette(rawValue: UserDefaults.standard.string(forKey: "colorPalette") ?? "mint") ?? .mint {
+        didSet { UserDefaults.standard.set(colorPalette.rawValue, forKey: "colorPalette") }
+    }
     @Published var deviceName = "Audio output unchanged"
     @Published var demoSignal = DemoSignal.music
     @Published var brightness = 0.68

@@ -70,3 +70,11 @@
 "Waiting for the system to respond. If an audio capture permission prompt is shown, respond to it, then retry if needed." = "Waiting for the system to respond. If an audio capture permission prompt is shown, respond to it, then retry if needed.";
 "dropped frames" = "dropped frames";
 "macOS Settings" = "macOS Settings";
+"Color palette" = "Color palette";
+"Mint (Default)" = "Mint (Default)";
+"Amber" = "Amber";
+"Glacier" = "Glacier";
+"Violet" = "Violet";
+"Rose" = "Rose";
+"Monochrome" = "Monochrome";
+"Applies instantly to instruments and controls. Your choice is saved." = "Applies instantly to instruments and controls. Your choice is saved.";
