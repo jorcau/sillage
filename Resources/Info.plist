@@ -7,12 +7,13 @@
     <key>CFBundleExecutable</key><string>Sillage</string>
     <key>CFBundleIconFile</key><string>AppIcon.icns</string>
     <key>CFBundlePackageType</key><string>APPL</string>
-    <key>CFBundleShortVersionString</key><string>0.4.0</string>
-    <key>CFBundleVersion</key><string>6</string>
+    <key>CFBundleShortVersionString</key><string>0.5.0</string>
+    <key>CFBundleVersion</key><string>7</string>
     <key>LSMinimumSystemVersion</key><string>14.2</string>
     <key>CFBundleDevelopmentRegion</key><string>en</string>
     <key>CFBundleLocalizations</key><array><string>en</string><string>fr</string></array>
     <key>NSHighResolutionCapable</key><true/>
     <key>NSPrincipalClass</key><string>NSApplication</string>
-    <key>NSAudioCaptureUsageDescription</key><string>Sillage analyzes audio from apps on this Mac to display levels, spectrum, and stereo imaging. Audio stays in memory and is never recorded or transmitted.</string>
+    <key>NSLocalNetworkUsageDescription</key><string>Sillage shares visualization measurements with your phone on the same local network when Phone display is enabled.</string>
+    <key>NSAudioCaptureUsageDescription</key><string>Sillage analyzes audio from apps on this Mac to display levels, spectrum, and stereo imaging. Audio stays in memory and is not recorded. Optional phone display sharing sends visualization measurements over your local network.</string>
 </dict></plist>

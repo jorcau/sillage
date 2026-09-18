@@ -27,6 +27,8 @@ struct SettingsView: View {
                     .font(.caption).foregroundStyle(.secondary)
             } header: { Text(model.text("Themes")) }
 
+            RemoteDisplaySettings(remote: model.remoteDisplay, model: model)
+
             Section {
                 Picker(model.text("Signal"), selection: Binding(
                     get: { model.demoSignal },

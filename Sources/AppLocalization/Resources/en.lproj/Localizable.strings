@@ -101,3 +101,16 @@
 "Hi-Fi Rack" = "Hi-Fi Rack";
 "Stereo waveform, %.1f millisecond sweep, fixed full-scale amplitude" = "Stereo waveform, %.1f millisecond sweep, fixed full-scale amplitude";
 "Quasi-peak levels, left %.1f, right %.1f dBFS" = "Quasi-peak levels, left %.1f, right %.1f dBFS";
+"Share on the local network" = "Share on the local network";
+"Scan the QR code on your phone. Keep your Mac awake and both devices on the same Wi-Fi network. Sound stays on the Mac." = "Scan the QR code on your phone. Keep your Mac awake and both devices on the same Wi-Fi network. Sound stays on the Mac.";
+"Scan to open Sillage on your phone" = "Scan to open Sillage on your phone";
+"Scan to connect" = "Scan to connect";
+"%d connected screens" = "%d connected screens";
+"Copy private link" = "Copy private link";
+"Open in browser" = "Open in browser";
+"Network address" = "Network address";
+"No local Wi-Fi or Ethernet address found. Connect the Mac to your network, then restart sharing." = "No local Wi-Fi or Ethernet address found. Connect the Mac to your network, then restart sharing.";
+"The private link grants viewing access until sharing is stopped. Up to four screens. No internet service is used." = "The private link grants viewing access until sharing is stopped. Up to four screens. No internet service is used.";
+"Starting local display…" = "Starting local display…";
+"Could not start sharing: %@" = "Could not start sharing: %@";
+"Phone display" = "Phone display";

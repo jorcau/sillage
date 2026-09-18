@@ -101,3 +101,16 @@
 "Hi-Fi Rack" = "Rack hi-fi";
 "Stereo waveform, %.1f millisecond sweep, fixed full-scale amplitude" = "Forme d’onde stéréo, balayage de %.1f millisecondes, amplitude fixe à pleine échelle";
 "Quasi-peak levels, left %.1f, right %.1f dBFS" = "Niveaux quasi-crête, gauche %.1f, droite %.1f dBFS";
+"Share on the local network" = "Partager sur le réseau local";
+"Scan the QR code on your phone. Keep your Mac awake and both devices on the same Wi-Fi network. Sound stays on the Mac." = "Scanne le QR code avec ton téléphone. Garde le Mac éveillé et les deux appareils sur le même réseau Wi-Fi. Le son reste sur le Mac.";
+"Scan to open Sillage on your phone" = "Scanner pour ouvrir Sillage sur le téléphone";
+"Scan to connect" = "Scanner pour se connecter";
+"%d connected screens" = "%d écrans connectés";
+"Copy private link" = "Copier le lien privé";
+"Open in browser" = "Ouvrir dans le navigateur";
+"Network address" = "Adresse réseau";
+"No local Wi-Fi or Ethernet address found. Connect the Mac to your network, then restart sharing." = "Aucune adresse Wi-Fi ou Ethernet locale trouvée. Connecte le Mac au réseau, puis relance le partage.";
+"The private link grants viewing access until sharing is stopped. Up to four screens. No internet service is used." = "Le lien privé autorise l’affichage jusqu’à l’arrêt du partage. Quatre écrans au maximum. Aucun service Internet utilisé.";
+"Starting local display…" = "Démarrage de l’affichage local…";
+"Could not start sharing: %@" = "Impossible de lancer le partage : %@";
+"Phone display" = "Affichage téléphone";

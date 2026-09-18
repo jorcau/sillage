@@ -3,12 +3,18 @@ import SwiftUI
 import AudioAnalysis
 import SystemCapture
 import AppLocalization
+import RemoteDisplay
 
 @MainActor
 final class AppModel: ObservableObject {
     enum Mode { case idle, system, demo }
     let store = FrameStore()
     let displayMetrics = DisplayMetrics()
+    lazy var remoteDisplay = RemoteDisplayModel(store: store) { [weak self] in
+        guard let self else { return RemotePresentation() }
+        let source = self.busy ? "waiting" : self.mode == .demo ? "demo" : self.mode == .system ? "system" : "paused"
+        return RemotePresentation(view: self.layout.rawValue, theme: self.theme.rawValue, source: source)
+    }
     lazy var pipeline = AnalysisPipeline(store: store)
     lazy var capture = SystemAudioCapture { [weak self] in
         Task { @MainActor in await self?.configurationChanged() }
@@ -96,7 +102,7 @@ final class AppModel: ObservableObject {
         store.publish(AnalysisFrame())
         message = "Paused"; error = nil; captureFailure = nil; busy = false
     }
-    func shutdown() async { await stopResources() }
+    func shutdown() async { remoteDisplay.setEnabled(false); await stopResources() }
     private func stopResources() async {
         await capture.stop()
         pipeline.stop()

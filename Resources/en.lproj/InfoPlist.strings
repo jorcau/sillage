@@ -1,1 +1,2 @@
-"NSAudioCaptureUsageDescription" = "Sillage analyzes audio from apps on this Mac to display levels, spectrum, and stereo imaging. Audio stays in memory and is never recorded or transmitted.";
+"NSAudioCaptureUsageDescription" = "Sillage analyzes audio from apps on this Mac to display levels, spectrum, and stereo imaging. Audio stays in memory and is not recorded. Optional phone display sharing sends visualization measurements over your local network.";
+"NSLocalNetworkUsageDescription" = "Sillage shares visualization measurements with your phone on the same local network when Phone display is enabled.";
