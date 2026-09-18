@@ -30,11 +30,15 @@ public final class AudioAnalyzer {
     private var bandHoldTime = [Double](repeating: 0, count: bandCount)
     private var bandRanges: [(Int, Int)] = []
     private var scale: Float = 1
+    private var ppmL: QuasiPeakMeter
+    private var ppmR: QuasiPeakMeter
     public private(set) var frame = AnalysisFrame()
 
     public init(sampleRate: Double) {
         precondition(sampleRate >= 8_000 && sampleRate.isFinite)
         self.sampleRate = sampleRate
+        ppmL = QuasiPeakMeter(sampleRate: sampleRate)
+        ppmR = QuasiPeakMeter(sampleRate: sampleRate)
         guard let fft = vDSP_create_fftsetup(log2n, FFTRadix(kFFTRadix2)) else { fatalError("FFT allocation failed") }
         setup = fft
         vDSP_hann_window(&window, vDSP_Length(Self.fftSize), Int32(vDSP_HANN_NORM))
@@ -69,6 +73,7 @@ public final class AudioAnalyzer {
         let denominator = sqrt(energyL * energyR)
         frame.correlation = denominator > 1e-10 ? max(-1, min(1, cross / denominator)) : 0
         for i in 0..<n {
+            ppmL.process(left[i]); ppmR.process(right[i])
             historyL[position] = left[i]; historyR[position] = right[i]
             position = (position + 1) & (Self.fftSize - 1)
             count += 1; hop += 1
@@ -87,7 +92,45 @@ public final class AudioAnalyzer {
             points.append(StereoPoint(x: (l-r) * 0.5, y: (l+r) * 0.5))
         }
         frame.phase = points
+        frame.leftPPMDB = ppmL.decibels
+        frame.rightPPMDB = ppmR.decibels
+        analyzeWaveform()
         frame.processedFrames = count
+    }
+
+    private func analyzeWaveform() {
+        // Fixed 20 ms sweep with an upward zero-crossing trigger on the stronger
+        // channel. Bound both time history and output independently of screen size.
+        let samples = min(Self.fftSize / 2, max(2, Int(sampleRate * 0.020)))
+        guard count >= UInt64(samples) else { frame.waveform = []; return }
+        let available = min(Int(min(count, UInt64(Self.fftSize))), Self.fftSize)
+        let triggerLeft = energyL >= energyR
+        var start = position - samples
+        let search = min(samples / 2, available - samples)
+        if search > 0 {
+            for offset in 0..<search {
+                let i = (start - offset + Self.fftSize) & (Self.fftSize - 1)
+                let previous = (i - 1 + Self.fftSize) & (Self.fftSize - 1)
+                let a = triggerLeft ? historyL[previous] : historyR[previous]
+                let b = triggerLeft ? historyL[i] : historyR[i]
+                if a <= 0 && b > 0.0001 { start -= offset; break }
+            }
+        }
+        let columns = min(samples, 1024)
+        var trace: [WaveformColumn] = []
+        trace.reserveCapacity(columns)
+        for column in 0..<columns {
+            var loL = Float.infinity, hiL = -Float.infinity
+            var loR = Float.infinity, hiR = -Float.infinity
+            for offset in (column * samples / columns)..<((column + 1) * samples / columns) {
+                let i = (start + offset + Self.fftSize) & (Self.fftSize - 1)
+                loL = min(loL, historyL[i]); hiL = max(hiL, historyL[i])
+                loR = min(loR, historyR[i]); hiR = max(hiR, historyR[i])
+            }
+            trace.append(WaveformColumn(leftMin: loL, leftMax: hiL, rightMin: loR, rightMax: hiR))
+        }
+        frame.waveform = trace
+        frame.waveformDuration = Double(samples) / sampleRate
     }
 
     private func level(rms: Float, peak: Float, old: ChannelLevel, channel: Int, dt: Double) -> ChannelLevel {

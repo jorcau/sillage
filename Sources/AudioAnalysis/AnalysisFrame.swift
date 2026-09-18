@@ -1,6 +1,12 @@
 import Foundation
 
 public struct StereoPoint: Sendable { public var x: Float; public var y: Float }
+public struct WaveformColumn: Sendable {
+    public var leftMin: Float
+    public var leftMax: Float
+    public var rightMin: Float
+    public var rightMax: Float
+}
 public struct ChannelLevel: Sendable {
     public var rmsDB: Float = -90
     public var peakDB: Float = -90
@@ -14,6 +20,10 @@ public struct AnalysisFrame: Sendable {
     public var spectrum: [Float] = Array(repeating: -90, count: 160)
     public var spectrumHold: [Float] = Array(repeating: -90, count: 160)
     public var phase: [StereoPoint] = []
+    public var waveform: [WaveformColumn] = []
+    public var waveformDuration: Double = 0.020
+    public var leftPPMDB: Float = -90
+    public var rightPPMDB: Float = -90
     public var correlation: Float = 0
     public var sampleRate: Double = 48_000
     public var processedFrames: UInt64 = 0
