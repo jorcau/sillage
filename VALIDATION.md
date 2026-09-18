@@ -49,6 +49,7 @@ Initial measurement: **5 s of stereo audio analyzed in about 0.020 s**, includin
 - Confirmed the brightness control starts at **100%**.
 - Inspected analog artwork and moving needles at the available window size. A left-only silent demo moved the left needle to its upper stop while the right needle rested at zero voltage.
 - Captured an English analog-view screenshot using the silent demo and stripped its metadata before publication.
+- A later system-capture reconnection stalled inside Core Audio’s AudioDeviceStart. A fresh Sillage process and a separate system-player attempt with digital silence did not clear it. Demo rendering remained functional; recovery of the macOS audio service still needs verification.
 - No new claim of hardware VU calibration, physical 4K OLED validation, or measured GPU presentation cadence is made.
 
 ## Live capture
