@@ -29,6 +29,18 @@ struct DashboardInstruments: View {
                 stereo
             case .analog:
                 AnalogMeterView(frame: frame)
+            case .studioBlue:
+                AnalogMeterView(frame: frame, style: .studioBlue)
+            case .vintageConsole:
+                AnalogMeterView(frame: frame, style: .vintage)
+            case .crtWaveform:
+                CRTInstrumentView(frame: frame, kind: .waveform)
+            case .crtStereo:
+                CRTInstrumentView(frame: frame, kind: .phase)
+            case .broadcastPPM:
+                BroadcastMeterView(frame: frame)
+            case .hifiRack:
+                HiFiRackView(frame: frame)
             }
         }.frame(maxWidth: .infinity, maxHeight: .infinity)
     }

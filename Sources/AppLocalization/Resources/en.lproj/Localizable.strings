@@ -93,3 +93,11 @@
 "%.1f" = "%.1f";
 "Analog VU" = "Analog VU";
 "Analog meters, left %.1f, right %.1f VU. Zero VU equals minus 18 dBFS." = "Analog meters, left %.1f, right %.1f VU. Zero VU equals minus 18 dBFS.";
+"Studio Blue" = "Studio Blue";
+"Vintage Console" = "Vintage Console";
+"CRT Oscilloscope" = "CRT Oscilloscope";
+"CRT Goniometer" = "CRT Goniometer";
+"Broadcast PPM" = "Broadcast PPM";
+"Hi-Fi Rack" = "Hi-Fi Rack";
+"Stereo waveform, %.1f millisecond sweep, fixed full-scale amplitude" = "Stereo waveform, %.1f millisecond sweep, fixed full-scale amplitude";
+"Quasi-peak levels, left %.1f, right %.1f dBFS" = "Quasi-peak levels, left %.1f, right %.1f dBFS";

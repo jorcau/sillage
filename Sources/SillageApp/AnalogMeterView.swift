@@ -4,8 +4,11 @@ import AppLocalization
 
 /// Original instrument artwork drawn at the final display size, including the
 /// dial, metal bevels and glass. No bitmap enlargement or external assets.
+enum AnalogFaceStyle { case classic, studioBlue, vintage }
+
 struct AnalogMeterView: View {
     let frame: AnalysisFrame
+    var style: AnalogFaceStyle = .classic
     @Environment(\.instrumentMetrics) private var metrics
     @Environment(\.appLocalizer) private var localizer
 
@@ -15,9 +18,22 @@ struct AnalogMeterView: View {
                             max(metrics.size(200), geometry.size.height - metrics.size(65)) * 2.75)
             let height = width / 2.75
             VStack(spacing: metrics.size(22)) {
-                HStack(spacing: width * 0.023) {
-                    AnalogChannelMeter(channel: "L", level: frame.left)
-                    AnalogChannelMeter(channel: "R", level: frame.right)
+                styledMeters(width: width, height: height)
+                Text("0 VU = −18 dBFS · RMS 300 ms")
+                    .font(.system(size: metrics.size(10), design: .monospaced))
+                    .foregroundStyle(InterfaceColors.secondary)
+            }
+            .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(localizer.format("RMS levels, left %.1f, right %.1f dBFS", frame.left.rmsDB, frame.right.rmsDB))
+    }
+
+    @ViewBuilder private func styledMeters(width: CGFloat, height: CGFloat) -> some View {
+        if style == .classic {
+            HStack(spacing: width * 0.023) {
+                    AnalogChannelMeter(channel: "L", level: frame.left, style: style)
+                    AnalogChannelMeter(channel: "R", level: frame.right, style: style)
                 }
                 .padding(width * 0.028)
                 .frame(width: width, height: height)
@@ -44,15 +60,23 @@ struct AnalogMeterView: View {
                         .environment(\.analogScrewSize, width * 0.008)
                 }
                 .shadow(color: .black.opacity(0.8), radius: width * 0.02, y: width * 0.01)
-                Text("0 VU = −18 dBFS · RMS 300 ms")
-                    .font(.system(size: metrics.size(10), design: .monospaced))
-                    .foregroundStyle(InterfaceColors.secondary)
-            }
-            .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
+        } else {
+            HardwareCabinet(finish: style == .vintage ? .walnut : .graphite) {
+                VStack(spacing: height * 0.025) {
+                    HStack {
+                        Text(style == .studioBlue ? "S I L L A G E   /   S T U D I O" : "S I L L A G E   /   C O N S O L E")
+                        Spacer()
+                        Text("STEREO · 300 ms")
+                    }
+                    .font(.system(size: width * 0.009, weight: .medium, design: .monospaced))
+                    .foregroundStyle(style == .vintage ? Color.black.opacity(0.72) : Color(white: 0.65))
+                    HStack(spacing: width * 0.024) {
+                        AnalogChannelMeter(channel: "L", level: frame.left, style: style)
+                        AnalogChannelMeter(channel: "R", level: frame.right, style: style)
+                    }
+                }
+            }.frame(width: width, height: height)
         }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(localizer.format("Analog meters, left %.1f, right %.1f VU. Zero VU equals minus 18 dBFS.",
-                                            frame.left.rmsDB + 18, frame.right.rmsDB + 18))
     }
 }
 
@@ -76,13 +100,14 @@ private struct AnalogScrew: View {
     }
 }
 
-private struct AnalogChannelMeter: View {
+struct AnalogChannelMeter: View {
     let channel: String
     let level: ChannelLevel
+    var style: AnalogFaceStyle = .classic
 
     var body: some View {
         ZStack {
-            AnalogDialFace(channel: channel).equatable()
+            AnalogDialFace(channel: channel, style: style).equatable()
             Canvas(rendersAsynchronously: true) { context, size in
                 let dial = AnalogDialGeometry(size: size)
                 context.clip(to: Path(dial.face))
@@ -96,7 +121,11 @@ private struct AnalogChannelMeter: View {
                 shadow.translateBy(x: size.width * 0.007, y: size.width * 0.006)
                 shadow.addFilter(.blur(radius: size.width * 0.003))
                 shadow.fill(needle, with: .color(.black.opacity(0.30)))
-                context.fill(needle, with: .color(Color(red: 0.13, green: 0.10, blue: 0.075)))
+                if style == .studioBlue {
+                    var glow = context; glow.addFilter(.blur(radius: size.width * 0.006))
+                    glow.fill(needle, with: .color(Color.cyan.opacity(0.60)))
+                }
+                context.fill(needle, with: .color(style == .studioBlue ? .white : style == .vintage ? Color(red: 0.65, green: 0.055, blue: 0.025) : Color(red: 0.13, green: 0.10, blue: 0.075)))
                 let hub = CGRect(x: dial.pivot.x - size.width * 0.022, y: dial.pivot.y - size.width * 0.016,
                                  width: size.width * 0.044, height: size.width * 0.044)
                 context.fill(Path(ellipseIn: hub), with: .linearGradient(Gradient(colors: [Color(white: 0.36), .black]),
@@ -143,25 +172,27 @@ private struct AnalogDialGeometry {
 
 private struct AnalogDialFace: View, Equatable {
     let channel: String
+    let style: AnalogFaceStyle
 
     var body: some View {
         Canvas(opaque: true, rendersAsynchronously: true) { context, size in
             let dial = AnalogDialGeometry(size: size)
             let full = CGRect(origin: .zero, size: size)
-            let ink = Color(red: 0.14, green: 0.12, blue: 0.085)
-            let red = Color(red: 0.63, green: 0.12, blue: 0.065)
+            let ink = style == .studioBlue ? Color(red: 0.75, green: 0.94, blue: 1) : Color(red: 0.14, green: 0.12, blue: 0.085)
+            let red = style == .studioBlue ? Color(red: 1, green: 0.54, blue: 0.45) : Color(red: 0.63, green: 0.12, blue: 0.065)
             context.fill(Path(full), with: .linearGradient(Gradient(colors: [Color(white: 0.45), Color(white: 0.11), .black, Color(white: 0.24)]),
                                                           startPoint: .zero, endPoint: CGPoint(x: size.width, y: size.height)))
             context.fill(Path(full.insetBy(dx: size.width * 0.008, dy: size.width * 0.008)), with: .color(Color(white: 0.035)))
-            context.fill(Path(dial.face), with: .linearGradient(Gradient(colors: [Color(red: 0.68, green: 0.59, blue: 0.39),
-                                                                                 Color(red: 0.92, green: 0.85, blue: 0.64),
-                                                                                 Color(red: 0.97, green: 0.88, blue: 0.64)]),
-                                                               startPoint: dial.face.origin, endPoint: CGPoint(x: dial.face.minX, y: dial.face.maxY)))
+            let faceColors: [Color] = style == .studioBlue
+                ? [Color(red: 0.006, green: 0.045, blue: 0.14), Color(red: 0.025, green: 0.22, blue: 0.44), Color(red: 0.025, green: 0.12, blue: 0.27)]
+                : [Color(red: 0.68, green: 0.59, blue: 0.39), Color(red: 0.92, green: 0.85, blue: 0.64), Color(red: 0.97, green: 0.88, blue: 0.64)]
+            context.fill(Path(dial.face), with: .linearGradient(Gradient(colors: faceColors),
+                startPoint: dial.face.origin, endPoint: CGPoint(x: dial.face.minX, y: dial.face.maxY)))
             var paper = context
             paper.clip(to: Path(dial.face))
             for offset in [-0.27, 0.27] {
                 let center = CGPoint(x: dial.face.midX + dial.face.width * offset, y: dial.face.maxY + dial.face.height * 0.07)
-                paper.fill(Path(dial.face), with: .radialGradient(Gradient(colors: [Color(red: 1, green: 0.98, blue: 0.73).opacity(0.8), .clear]),
+                paper.fill(Path(dial.face), with: .radialGradient(Gradient(colors: [(style == .studioBlue ? Color(red: 0.02, green: 0.49, blue: 0.90) : Color(red: 1, green: 0.98, blue: 0.73)).opacity(0.8), .clear]),
                                                                   center: center, startRadius: 0, endRadius: dial.face.width * 0.65))
             }
             // A small deterministic paper grain, independent of display pixel count.
