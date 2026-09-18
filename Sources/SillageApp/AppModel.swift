@@ -2,6 +2,7 @@ import AppKit
 import SwiftUI
 import AudioAnalysis
 import SystemCapture
+import AppLocalization
 
 @MainActor
 final class AppModel: ObservableObject {
@@ -15,9 +16,13 @@ final class AppModel: ObservableObject {
     private var pipe: AudioPipe?
     @Published var mode = Mode.idle
     @Published var busy = false
-    @Published var message = "Prêt à écouter"
+    @Published var message = "Ready to listen"
     @Published var error: String?
-    @Published var deviceName = "Sortie audio inchangée"
+    @Published private var captureFailure: CaptureError?
+    @Published var language: AppLanguage = AppLanguage(rawValue: UserDefaults.standard.string(forKey: "appLanguage") ?? "system") ?? .system {
+        didSet { UserDefaults.standard.set(language.rawValue, forKey: "appLanguage") }
+    }
+    @Published var deviceName = "Audio output unchanged"
     @Published var demoSignal = DemoSignal.music
     @Published var brightness = 0.68
     @Published var showPeaks = true
@@ -26,16 +31,31 @@ final class AppModel: ObservableObject {
     private var started = Date()
     private var connectionAttempt = UUID()
 
+    var localizer: AppLocalizer { AppLocalizer(language: language) }
+    func text(_ key: String) -> String { localizer.text(key) }
+    var displayedDeviceName: String { mode == .demo ? text(demoSignal.rawValue) : text(deviceName) }
+    var displayedError: String? {
+        if let captureFailure {
+            switch captureFailure {
+            case let .osStatus(operation, code):
+                return localizer.format("%@: Core Audio error %d. Check audio capture permission in System Settings → Privacy & Security.", text(operation), code)
+            case .unsupportedFormat:
+                return text("Unsupported capture format: stereo Float32 PCM is required.")
+            }
+        }
+        return error.map(text)
+    }
+
     func startSystem() async {
         guard !busy else { return }
-        busy = true; error = nil; message = "Connexion au son système…"
+        busy = true; error = nil; captureFailure = nil; message = "Connecting to system audio…"
         let attempt = UUID()
         connectionAttempt = attempt
         Task { [weak self] in
             try? await Task.sleep(for: .seconds(5))
             guard let self, self.busy, self.connectionAttempt == attempt else { return }
-            self.message = "En attente de macOS…"
-            self.error = "La connexion attend une réponse du système. Si une demande de capture audio est affichée, répondez-y, puis réessayez si nécessaire."
+            self.message = "Waiting for macOS…"
+            self.error = "Waiting for the system to respond. If an audio capture permission prompt is shown, respond to it, then retry if needed."
         }
         await stopResources()
         let newPipe = AudioPipe()
@@ -45,27 +65,28 @@ final class AppModel: ObservableObject {
             pipeline.start(pipe: newPipe, sampleRate: info.sampleRate)
             deviceName = info.outputName
             error = nil
-            mode = .system; message = "Audio système"; started = Date()
+            mode = .system; message = "System audio"; started = Date()
         } catch {
+            captureFailure = error as? CaptureError
             self.error = error.localizedDescription
-            mode = .idle; message = "Capture indisponible"; pipe = nil
+            mode = .idle; message = "Capture unavailable"; pipe = nil
         }
         busy = false
     }
     func startDemo(_ signal: DemoSignal = .music) async {
         guard !busy else { return }
-        busy = true; error = nil
+        busy = true; error = nil; captureFailure = nil
         await stopResources()
         demoSignal = signal
         pipeline.start(pipe: nil, sampleRate: 48_000, demo: signal)
-        mode = .demo; message = "Démo silencieuse"; deviceName = signal.rawValue
+        mode = .demo; message = "Silent demo"; deviceName = signal.rawValue
         started = Date(); busy = false
     }
     func stop() async {
         guard !busy else { return }
         busy = true; await stopResources()
         store.publish(AnalysisFrame())
-        message = "En pause"; busy = false
+        message = "Paused"; error = nil; captureFailure = nil; busy = false
     }
     func shutdown() async { await stopResources() }
     private func stopResources() async {
@@ -80,12 +101,12 @@ final class AppModel: ObservableObject {
     }
     func status(frame: AnalysisFrame) -> String {
         if mode == .system && frame.callbacks == 0 && Date().timeIntervalSince(started) > 3 {
-            return "En attente d’audio · vérifiez l’autorisation macOS"
+            return text("Waiting for audio · check macOS permission")
         }
-        if frame.invalidBuffers > 0 { return "Format du flux modifié · reconnectez la capture" }
-        return message
+        if frame.invalidBuffers > 0 { return text("Audio format changed · reconnect capture") }
+        return text(message)
     }
-    func toggleFullscreen() { NSApp.keyWindow?.toggleFullScreen(nil) }
+    func toggleFullscreen() { NSApp.windows.first(where: { $0.title == "Sillage" })?.toggleFullScreen(nil) }
     func openPrivacy() {
         if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_AudioCapture") { NSWorkspace.shared.open(url) }
     }

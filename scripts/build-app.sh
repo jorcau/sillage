@@ -14,7 +14,15 @@ BIN_PATH="$(swift build --package-path "$PROJECT_DIR" --scratch-path "$BUILD_PAT
 mkdir -p "$APP_PATH/Contents/MacOS" "$APP_PATH/Contents/Resources"
 cp "$BIN_PATH/Sillage" "$APP_PATH/Contents/MacOS/Sillage"
 cp "$PROJECT_DIR/Resources/Info.plist" "$APP_PATH/Contents/Info.plist"
+# Embed SwiftPM resources so the app works outside the build directory.
+for RESOURCE_BUNDLE in "$BIN_PATH"/*.bundle; do
+    [ -d "$RESOURCE_BUNDLE" ] || continue
+    ditto "$RESOURCE_BUNDLE" "$APP_PATH/Contents/Resources/$(basename "$RESOURCE_BUNDLE")"
+done
+for LOCALIZATION in "$PROJECT_DIR/Resources/"*.lproj; do
+    ditto "$LOCALIZATION" "$APP_PATH/Contents/Resources/$(basename "$LOCALIZATION")"
+done
 # Keep the prototype's existing bundle identity when changing its visible name.
 codesign --force --sign - --identifier audio.nocturne.prototype "$APP_PATH"
 codesign --verify --deep --strict "$APP_PATH"
-printf 'Application prête : %s\n' "$APP_PATH"
+printf 'App ready: %s\n' "$APP_PATH"

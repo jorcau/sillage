@@ -1,5 +1,6 @@
 import SwiftUI
 import AudioAnalysis
+import AppLocalization
 
 // Canvas is allocated at its final view size. All text and geometry are drawn in
 // those coordinates, with no CGContext/view scaling or enlarged backing texture.
@@ -28,6 +29,7 @@ private struct InstrumentDrawing {
 }
 
 struct SpectrumView: View {
+    @Environment(\.appLocalizer) private var localizer
     let frame: AnalysisFrame
     let showPeaks: Bool
     @Environment(\.instrumentMetrics) private var metrics
@@ -70,11 +72,12 @@ struct SpectrumView: View {
                 }
             }
         }
-        .accessibilityLabel("Spectre stéréo, de 20 hertz à 20 kilohertz, échelle logarithmique")
+        .accessibilityLabel(localizer.text("Stereo spectrum, 20 hertz to 20 kilohertz, logarithmic scale"))
     }
 }
 
 struct PhaseView: View {
+    @Environment(\.appLocalizer) private var localizer
     let frame: AnalysisFrame
     @Environment(\.instrumentMetrics) private var metrics
     var body: some View {
@@ -116,11 +119,12 @@ struct PhaseView: View {
                     y: size.height-d.m(7), color: Color(white: 0.65), size: 9)
             d.label("+1", x: size.width-d.m(8), y: size.height-d.m(7), size: 9)
         }
-        .accessibilityLabel("Goniomètre stéréo, corrélation \(frame.correlation, specifier: "%.2f")")
+        .accessibilityLabel(localizer.format("Stereo goniometer, correlation %.2f", frame.correlation))
     }
 }
 
 struct LevelView: View {
+    @Environment(\.appLocalizer) private var localizer
     let frame: AnalysisFrame
     let showPeaks: Bool
     @Environment(\.instrumentMetrics) private var metrics
@@ -159,10 +163,10 @@ struct LevelView: View {
                 d.line(CGPoint(x: x(Float(db)), y: d.m(17)), CGPoint(x: x(Float(db)), y: d.m(20)), color: Palette.line)
             }
             d.label("RMS", x: size.width-d.m(70), y: d.m(6), size: 9, anchor: .trailing)
-            d.label("PEAK", x: size.width, y: d.m(6), size: 9, anchor: .trailing)
-            d.label("INTÉGRATION 300 ms", x: start, y: d.m(110), size: 9, anchor: .leading)
-            d.label("HOLD 1.5 s", x: end, y: d.m(110), size: 9, anchor: .trailing)
+            d.label(localizer.text("PEAK"), x: size.width, y: d.m(6), size: 9, anchor: .trailing)
+            d.label(localizer.text("INTEGRATION") + " 300 ms", x: start, y: d.m(110), size: 9, anchor: .leading)
+            d.label(localizer.text("HOLD 1.5 s"), x: end, y: d.m(110), size: 9, anchor: .trailing)
         }
-        .accessibilityLabel("Niveaux RMS gauche \(frame.left.rmsDB, specifier: "%.1f"), droite \(frame.right.rmsDB, specifier: "%.1f") dBFS")
+        .accessibilityLabel(localizer.format("RMS levels, left %.1f, right %.1f dBFS", frame.left.rmsDB, frame.right.rmsDB))
     }
 }

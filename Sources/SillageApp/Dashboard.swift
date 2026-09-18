@@ -35,24 +35,24 @@ private struct DashboardSurface: View {
             let isSilent = max(frame.left.peakDB, frame.right.peakDB) < -75
             VStack(spacing: m(26)) {
                 header(frame: frame)
-                if let error = model.error {
+                if let error = model.displayedError {
                     HStack {
                         Text(error).font(.system(size: m(12)))
                         Spacer()
-                        Button("Réglages macOS") { model.openPrivacy() }
+                        Button(model.text("macOS Settings")) { model.openPrivacy() }
                     }.foregroundStyle(Palette.amber)
                 }
                 GeometryReader { geometry in
                     HStack(spacing: m(26)) {
-                        InstrumentPanel(title: "SPECTRE", detail: "20 Hz — 20 kHz") {
+                        InstrumentPanel(title: model.text("SPECTRUM"), detail: "20 Hz — 20 kHz") {
                             SpectrumView(frame: frame, showPeaks: model.showPeaks)
                         }.frame(width: metrics.snap((geometry.size.width - m(26)) * 0.70))
-                        InstrumentPanel(title: "IMAGE STÉRÉO", detail: "L / R") {
+                        InstrumentPanel(title: model.text("STEREO IMAGE"), detail: "L / R") {
                             PhaseView(frame: frame)
                         }
                     }
                 }
-                InstrumentPanel(title: "NIVEAUX", detail: "RMS · SAMPLE PEAK · dBFS") {
+                InstrumentPanel(title: model.text("LEVELS"), detail: model.text("RMS · SAMPLE PEAK · dBFS")) {
                     LevelView(frame: frame, showPeaks: model.showPeaks)
                         .frame(height: m(120))
                 }
@@ -75,7 +75,7 @@ private struct DashboardSurface: View {
                     Image(systemName: "waveform.path").font(.system(size: m(23), weight: .light)).foregroundStyle(Palette.mint)
                     Text("SILLAGE").font(.system(size: m(23), weight: .medium, design: .rounded)).tracking(m(6))
                 }
-                Text("L E  S O N ,  E N  L U M I È R E").font(.system(size: m(9), weight: .medium)).foregroundStyle(Palette.secondary)
+                Text(model.text("S O U N D ,  I N  L I G H T")).font(.system(size: m(9), weight: .medium)).foregroundStyle(Palette.secondary)
             }
             Spacer(minLength: m(15))
             VStack(alignment: .trailing, spacing: m(6)) {
@@ -83,40 +83,41 @@ private struct DashboardSurface: View {
                     Circle().fill(model.mode == .system ? Palette.mint : Palette.secondary).frame(width: m(5), height: m(5))
                     Text(model.status(frame: frame)).font(.system(size: m(11), weight: .medium))
                 }
-                Text(model.deviceName).font(.system(size: m(10))).foregroundStyle(Palette.secondary).lineLimit(1)
+                Text(model.displayedDeviceName).font(.system(size: m(10))).foregroundStyle(Palette.secondary).lineLimit(1)
             }
-            Menu {
-                ForEach(DemoSignal.allCases, id: \.self) { signal in
-                    Button(signal.rawValue) { Task { await model.startDemo(signal) } }
-                }
-            } label: { Text("Démo").font(.system(size: m(11))) }
-                .menuStyle(.borderlessButton).fixedSize().disabled(model.busy)
+            SettingsLink {
+                Image(systemName: "gearshape").font(.system(size: m(14)))
+            }.buttonStyle(.plain)
+                .help(model.text("Settings") + " · ⌘,")
+                .accessibilityLabel(model.text("Settings"))
             Button { Task { if model.mode == .system { await model.stop() } else { await model.startSystem() } } } label: {
-                Label(model.busy ? "Connexion…" : model.mode == .system ? "Pause" : "Écouter", systemImage: model.mode == .system ? "pause.fill" : "play.fill")
+                Label(model.text(model.busy ? "Connecting…" : model.mode == .system ? "Pause" : "Listen"), systemImage: model.mode == .system ? "pause.fill" : "play.fill")
                     .font(.system(size: m(11), weight: .medium)).padding(.horizontal, m(13)).padding(.vertical, m(10))
             }.buttonStyle(.plain).background(Palette.mint.opacity(0.12), in: RoundedRectangle(cornerRadius: m(6)))
                 .foregroundStyle(Palette.mint).disabled(model.busy)
             Button { model.toggleFullscreen() } label: { Image(systemName: "arrow.up.left.and.arrow.down.right").font(.system(size: m(13))) }
-                .buttonStyle(.plain).help("Plein écran · ⌃⌘F")
+                .buttonStyle(.plain).help(model.text("Full Screen") + " · ⌃⌘F")
+                .accessibilityLabel(model.text("Full Screen"))
         }
     }
     private func footer(frame: AnalysisFrame) -> some View {
         HStack(spacing: m(18)) {
-            Text(model.mode == .idle ? "PCM STÉRÉO" : String(format: "%.1f kHz · STÉRÉO", frame.sampleRate / 1000))
+            Text(model.mode == .idle ? model.text("STEREO PCM") : model.localizer.format("%.1f kHz · STEREO", frame.sampleRate / 1000))
             Circle().fill(Palette.line).frame(width: m(3), height: m(3))
             Text("FFT 8192")
-            if frame.droppedFrames > 0 { Text("\(frame.droppedFrames) échantillons perdus").foregroundStyle(Palette.amber) }
+            if frame.droppedFrames > 0 { Text(model.localizer.format("%@ dropped frames", String(frame.droppedFrames))).foregroundStyle(Palette.amber) }
             Spacer()
-            Toggle("Pics", isOn: $model.showPeaks).toggleStyle(.checkbox)
-            Toggle("OLED", isOn: $model.protectOLED).toggleStyle(.checkbox).help("Noir pur, léger déplacement des instruments et atténuation au silence. Ne garantit pas l’absence de marquage.")
+            Toggle(model.text("Peaks"), isOn: $model.showPeaks).toggleStyle(.checkbox)
+            Toggle("OLED", isOn: $model.protectOLED).toggleStyle(.checkbox).help(model.text("Pure black, subtle pixel shifting, and dimming during silence. Does not guarantee protection against burn-in."))
             HStack(spacing: m(6)) {
                 Image(systemName: "sun.min")
                 Slider(value: $model.brightness, in: 0.25...1).frame(width: m(80)).controlSize(.mini)
-            }.help("Luminosité des instruments")
+                    .accessibilityLabel(model.text("Instrument brightness"))
+            }.help(model.text("Instrument brightness"))
             Menu("\(model.targetFPS) Hz") {
-                Button("60 Hz · fluide") { model.targetFPS = 60 }
-                Button("30 Hz · économe") { model.targetFPS = 30 }
-            }.menuStyle(.borderlessButton).fixedSize().help("Cadence de rendu cible")
+                Button(model.text("60 Hz · smooth")) { model.targetFPS = 60 }
+                Button(model.text("30 Hz · low power")) { model.targetFPS = 30 }
+            }.menuStyle(.borderlessButton).fixedSize().help(model.text("Target refresh rate"))
         }.font(.system(size: m(10), design: .monospaced)).foregroundStyle(Palette.secondary)
             .tint(Palette.mint)
     }

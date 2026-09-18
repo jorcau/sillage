@@ -9,7 +9,7 @@ public final class AudioPipe: @unchecked Sendable {
 }
 
 public enum DemoSignal: String, CaseIterable, Sendable {
-    case music = "Musical", mono = "Mono · 1 kHz", antiphase = "Antiphase", left = "Gauche seule", silence = "Silence"
+    case music = "Music", mono = "Mono · 1 kHz", antiphase = "Antiphase", left = "Left only", silence = "Silence"
 }
 
 public final class AnalysisPipeline: @unchecked Sendable {

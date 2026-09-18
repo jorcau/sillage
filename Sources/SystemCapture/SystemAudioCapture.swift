@@ -13,8 +13,8 @@ public enum CaptureError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case let .osStatus(operation, code):
-            return "\(operation) : erreur Core Audio \(code). Vérifiez l’autorisation de capture audio dans Réglages Système → Confidentialité et sécurité."
-        case .unsupportedFormat: return "Format de capture incompatible : PCM Float32 stéréo requis."
+            return "\(operation): Core Audio error \(code). Check audio capture permission in System Settings → Privacy & Security."
+        case .unsupportedFormat: return "Unsupported capture format: stereo Float32 PCM is required."
         }
     }
 }
@@ -54,7 +54,7 @@ public final class SystemAudioCapture: @unchecked Sendable {
         var outputID = AudioObjectID(0)
         var outputAddress = address(kAudioHardwarePropertyDefaultOutputDevice)
         var bytes = UInt32(MemoryLayout<AudioObjectID>.size)
-        try checked(AudioObjectGetPropertyData(AudioObjectID(kAudioObjectSystemObject), &outputAddress, 0, nil, &bytes, &outputID), "Lecture de la sortie audio")
+        try checked(AudioObjectGetPropertyData(AudioObjectID(kAudioObjectSystemObject), &outputAddress, 0, nil, &bytes, &outputID), "Reading audio output")
 
         // Exclude our process if Core Audio has registered it; this app never produces audio.
         var pid = getpid(), processID = AudioObjectID(0)
@@ -66,12 +66,12 @@ public final class SystemAudioCapture: @unchecked Sendable {
         description.name = "Sillage · System audio"
         description.isPrivate = true
         description.muteBehavior = .unmuted
-        try checked(AudioHardwareCreateProcessTap(description, &tap), "Création de la capture")
+        try checked(AudioHardwareCreateProcessTap(description, &tap), "Creating capture tap")
 
         var format = AudioStreamBasicDescription()
         var formatAddress = address(kAudioTapPropertyFormat)
         bytes = UInt32(MemoryLayout<AudioStreamBasicDescription>.size)
-        try checked(AudioObjectGetPropertyData(tap, &formatAddress, 0, nil, &bytes, &format), "Lecture du format")
+        try checked(AudioObjectGetPropertyData(tap, &formatAddress, 0, nil, &bytes, &format), "Reading audio format")
         guard format.mFormatID == kAudioFormatLinearPCM,
               format.mFormatFlags & kAudioFormatFlagIsFloat != 0,
               format.mFormatFlags & kAudioFormatFlagIsBigEndian == 0,
@@ -89,9 +89,9 @@ public final class SystemAudioCapture: @unchecked Sendable {
                 kAudioSubTapDriftCompensationKey: true
             ]]
         ]
-        try checked(AudioHardwareCreateAggregateDevice(aggregateDescription as CFDictionary, &aggregate), "Création du périphérique privé")
-        try checked(AudioDeviceCreateIOProcID(aggregate, nt_audio_callback, UnsafeMutableRawPointer(bitPattern: ringAddress), &ioProc), "Connexion du flux")
-        try checked(AudioDeviceStart(aggregate, ioProc), "Démarrage de la capture")
+        try checked(AudioHardwareCreateAggregateDevice(aggregateDescription as CFDictionary, &aggregate), "Creating private capture device")
+        try checked(AudioDeviceCreateIOProcID(aggregate, nt_audio_callback, UnsafeMutableRawPointer(bitPattern: ringAddress), &ioProc), "Connecting audio stream")
+        try checked(AudioDeviceStart(aggregate, ioProc), "Starting capture")
         addListener(object: AudioObjectID(kAudioObjectSystemObject), selector: kAudioHardwarePropertyDefaultOutputDevice)
         addListener(object: tap, selector: kAudioTapPropertyFormat)
         return CaptureInfo(sampleRate: format.mSampleRate, outputDevice: outputID, outputName: Self.deviceName(outputID))
@@ -116,12 +116,12 @@ public final class SystemAudioCapture: @unchecked Sendable {
     }
     private static func deviceName(_ id: AudioObjectID) -> String {
         var property = AudioObjectPropertyAddress(mSelector: kAudioObjectPropertyName, mScope: kAudioObjectPropertyScopeGlobal, mElement: kAudioObjectPropertyElementMain)
-        var value: CFString = "Sortie système" as CFString
+        var value: CFString = "System output" as CFString
         var bytes = UInt32(MemoryLayout<CFString>.size)
         let status = withUnsafeMutablePointer(to: &value) { pointer in
             AudioObjectGetPropertyData(id, &property, 0, nil, &bytes, pointer)
         }
         if status == noErr { return value as String }
-        return "Sortie système"
+        return "System output"
     }
 }
