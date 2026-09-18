@@ -21,41 +21,56 @@ struct Dashboard: View {
     }
 }
 
+@MainActor
+private final class DashboardPresentation: ObservableObject {
+    @Published var frame = AnalysisFrame()
+    @Published var oledOffset = CGSize.zero
+    @Published var isSilent = false
+}
+
 private struct DashboardSurface: View {
     @ObservedObject var model: AppModel
     @Environment(\.instrumentTheme) private var theme
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.instrumentMetrics) private var metrics
+    @StateObject private var presentation = DashboardPresentation()
     private func m(_ value: CGFloat) -> CGFloat { metrics.size(value) }
     var body: some View {
-        TimelineView(.animation(minimumInterval: 1 / Double(model.targetFPS), paused: scenePhase == .background || (model.mode == .idle && !model.busy))) { timeline in
-            let frame = model.store.read()
-            let time = timeline.date.timeIntervalSinceReferenceDate
-            // Whole backing pixels prevent interpolation blur during OLED pixel shifting.
-            let driftX = model.protectOLED ? metrics.snap(sin(time / 41) * 2) : 0
-            let driftY = model.protectOLED ? metrics.snap(cos(time / 53) * 2) : 0
-            let isSilent = max(frame.left.peakDB, frame.right.peakDB) < -75
-            VStack(spacing: m(26)) {
-                header(frame: frame)
-                if let error = model.displayedError {
-                    HStack {
-                        Text(error).font(.system(size: m(12)))
-                        Spacer()
-                        Button(model.text("macOS Settings")) { model.openPrivacy() }
-                    }.foregroundStyle(InterfaceColors.amber)
-                }
+        VStack(spacing: m(26)) {
+            header(frame: presentation.frame)
+            if let error = model.displayedError {
+                HStack {
+                    Text(error).font(.system(size: m(12)))
+                    Spacer()
+                    Button(model.text("macOS Settings")) { model.openPrivacy() }
+                }.foregroundStyle(InterfaceColors.amber)
+            }
+            // Keep interactive controls outside TimelineView. Rebuilding a native
+            // menu in its animated content can interrupt selection during capture.
+            TimelineView(.animation(minimumInterval: 1 / Double(model.targetFPS), paused: scenePhase == .background || (model.mode == .idle && !model.busy))) { timeline in
+                let frame = model.store.read()
                 DashboardInstruments(model: model, frame: frame)
-                footer(frame: frame)
-            }
-            .padding(.horizontal, m(38)).padding(.top, m(48)).padding(.bottom, m(26))
-            .opacity(model.brightness * ((isSilent && model.protectOLED && model.mode != .idle) ? 0.72 : 1))
-            .offset(x: driftX, y: driftY)
-            .background(Color.black)
-            .onChange(of: timeline.date) { _, date in
-                if model.displayMetrics.tick(date) { writeDiagnostics(frame: frame) }
-            }
+                    .onChange(of: timeline.date) { _, date in
+                        if model.displayMetrics.tick(date) {
+                            presentation.frame = frame
+                            presentation.isSilent = max(frame.left.peakDB, frame.right.peakDB) < -75
+                            let time = date.timeIntervalSinceReferenceDate
+                            // Whole backing pixels avoid interpolation blur. Controls
+                            // need only this slow OLED shift, not 60 Hz view updates.
+                            presentation.oledOffset = CGSize(width: metrics.snap(sin(time / 41) * 2),
+                                                height: metrics.snap(cos(time / 53) * 2))
+                            writeDiagnostics(frame: frame)
+                        }
+                    }
+            }.frame(maxWidth: .infinity, maxHeight: .infinity)
+            footer(frame: presentation.frame)
         }
+        .padding(.horizontal, m(38)).padding(.top, m(48)).padding(.bottom, m(26))
+        .opacity(model.brightness * ((presentation.isSilent && model.protectOLED && model.mode != .idle) ? 0.72 : 1))
+        .offset(model.protectOLED ? presentation.oledOffset : .zero)
         .background(Color.black)
+        .onAppear { presentation.frame = model.store.read() }
+        .onChange(of: model.mode) { _, _ in presentation.frame = model.store.read() }
     }
     private func header(frame: AnalysisFrame) -> some View {
         HStack(alignment: .center, spacing: m(20)) {
@@ -68,20 +83,15 @@ private struct DashboardSurface: View {
                 Text(model.text("S O U N D ,  I N  L I G H T")).font(.system(size: m(9), weight: .medium)).foregroundStyle(InterfaceColors.secondary)
             }
             Spacer(minLength: m(15))
-            Menu {
-                Picker(model.text("View"), selection: $model.layout) {
-                    ForEach(VisualizerLayout.allCases, id: \.self) { layout in
-                        Label(model.text(layout.title), systemImage: layout.symbol).tag(layout)
-                    }
+            Picker(model.text("View"), selection: $model.layout) {
+                ForEach(VisualizerLayout.allCases, id: \.self) { layout in
+                    Label(model.text(layout.title), systemImage: layout.symbol).tag(layout)
                 }
-            } label: {
-                Label(model.text(model.layout.title), systemImage: model.layout.symbol)
-                    .font(.system(size: m(11), weight: .medium))
             }
-            .menuStyle(.borderlessButton).fixedSize()
+            .pickerStyle(.menu).labelsHidden().controlSize(.small)
+            .font(.system(size: m(11), weight: .medium)).fixedSize()
             .help(model.text("Choose a view") + " · ⌘1–4")
             .accessibilityLabel(model.text("View"))
-            .accessibilityValue(model.text(model.layout.title))
             VStack(alignment: .trailing, spacing: m(6)) {
                 HStack(spacing: m(7)) {
                     Circle().fill(model.mode == .system ? theme.accent : InterfaceColors.secondary).frame(width: m(5), height: m(5))
