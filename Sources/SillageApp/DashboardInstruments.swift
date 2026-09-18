@@ -27,6 +27,8 @@ struct DashboardInstruments: View {
                 spectrum
             case .stereo:
                 stereo
+            case .analog:
+                AnalogMeterView(frame: frame)
             }
         }.frame(maxWidth: .infinity, maxHeight: .infinity)
     }

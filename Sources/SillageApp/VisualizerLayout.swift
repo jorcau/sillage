@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Presentation only. Every layout reads the same analysis frame and capture session.
 enum VisualizerLayout: String, CaseIterable {
-    case dashboard, meters, spectrum, stereo
+    case dashboard, meters, spectrum, stereo, analog
 
     var title: String {
         switch self {
@@ -10,6 +10,7 @@ enum VisualizerLayout: String, CaseIterable {
         case .meters: "Meters"
         case .spectrum: "Spectrum"
         case .stereo: "Stereo"
+        case .analog: "Analog VU"
         }
     }
 
@@ -19,6 +20,7 @@ enum VisualizerLayout: String, CaseIterable {
         case .meters: "chart.bar.xaxis"
         case .spectrum: "waveform.path"
         case .stereo: "scope"
+        case .analog: "gauge.with.needle"
         }
     }
 
@@ -28,6 +30,7 @@ enum VisualizerLayout: String, CaseIterable {
         case .meters: "2"
         case .spectrum: "3"
         case .stereo: "4"
+        case .analog: "5"
         }
     }
 }

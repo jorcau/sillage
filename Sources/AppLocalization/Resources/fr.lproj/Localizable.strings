@@ -91,3 +91,5 @@
 "View" = "Vue";
 "Choose a view" = "Choisir une vue";
 "%.1f" = "%.1f";
+"Analog VU" = "VU analogiques";
+"Analog meters, left %.1f, right %.1f VU. Zero VU equals minus 18 dBFS." = "VU analogiques, gauche %.1f, droite %.1f VU. Zéro VU correspond à moins 18 dBFS.";

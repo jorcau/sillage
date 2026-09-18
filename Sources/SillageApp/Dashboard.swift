@@ -90,7 +90,7 @@ private struct DashboardSurface: View {
             }
             .pickerStyle(.menu).labelsHidden().controlSize(.small)
             .font(.system(size: m(11), weight: .medium)).fixedSize()
-            .help(model.text("Choose a view") + " · ⌘1–4")
+            .help(model.text("Choose a view") + " · ⌘1–5")
             .accessibilityLabel(model.text("View"))
             VStack(alignment: .trailing, spacing: m(6)) {
                 HStack(spacing: m(7)) {
