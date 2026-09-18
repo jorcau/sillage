@@ -1,6 +1,6 @@
 # EU AI-generated content labels
 
-`eu-ai-generated-black.svg` and `eu-ai-generated-white.svg` are unmodified copies of the official **AI GENERATED** icons published by the European Commission.
+`eu-ai-generated-black.svg` and `eu-ai-generated-white.svg` contain the official **AI GENERATED** artwork published by the European Commission. The SVG viewBox is tightened around the artwork for a compact README badge, and root metadata uses English names. Paths and colors are unchanged.
 
 - Source and usage guidance: <https://digital-strategy.ec.europa.eu/en/policies/eu-icons-labelling-ai-generated-content>
 - Official SVG archive: <https://ec.europa.eu/newsroom/dae/redirection/document/129546>
