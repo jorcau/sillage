@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="Your Sillage instruments, live from your Mac on your local network.">
+  <title>Sillage</title>
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="stylesheet" href="/styles.css">
+  <script type="module" src="/app.js"></script>
+</head>
+<body>
+  <div id="app">
+    <header>
+      <a class="brand" href="/" aria-label="Sillage"><img src="/icon.svg" alt="" width="30" height="30"><span>SILLAGE</span></a>
+      <span id="connection" role="status" aria-live="polite" data-state="connecting">Connecting…</span>
+    </header>
+    <main>
+      <div class="heading"><div><p id="source" class="eyebrow">FROM YOUR MAC</p><h1 id="viewTitle">Dashboard</h1></div><span id="sampleRate" class="technical">—</span></div>
+      <div id="stage"><canvas id="instruments" role="img" aria-label="Stereo audio instruments"></canvas>
+        <div id="empty" hidden><img src="/icon.svg" alt="" width="64" height="64"><h2 id="emptyTitle">Connect your Mac</h2><p id="emptyMessage">Enable Phone display in Sillage Settings, then scan its QR code. Keep both devices on the same Wi-Fi network.</p><button id="retry" type="button" data-i18n="retry">Retry</button></div>
+      </div>
+      <p id="reading" class="technical reading" aria-live="off">L — dBFS · R — dBFS</p>
+    </main>
+    <footer>
+      <button id="settingsButton" type="button" data-i18n="display" aria-haspopup="dialog">Display</button>
+      <button id="focusButton" type="button" data-i18n="focus">Focus</button>
+      <button id="fullscreenButton" type="button" data-i18n="fullscreen">Full screen</button>
+    </footer>
+    <button id="leaveFocus" type="button" data-i18n="controls" hidden>Show controls</button>
+  </div>
+  <dialog id="settings" aria-labelledby="settingsTitle">
+    <div class="sheetHeader"><h2 id="settingsTitle" data-i18n="display">Display</h2><button id="closeSettings" type="button" data-i18n="done">Done</button></div>
+    <label for="view" data-i18n="view">View</label><select id="view"></select>
+    <label for="theme" data-i18n="theme">Theme</label><select id="theme"></select>
+    <label class="switch"><span data-i18n="follow">Follow the Mac's view and theme</span><input id="follow" type="checkbox" checked></label>
+    <div class="settingsRow"><div><label for="language" data-i18n="language">Language</label><select id="language"><option value="en">English</option><option value="fr">Français</option></select></div><div><label for="refresh" data-i18n="refresh">Refresh target</label><select id="refresh"><option value="60">60 Hz</option><option value="30">30 Hz</option></select></div></div>
+    <label for="brightness" data-i18n="brightness">Brightness</label><input id="brightness" type="range" min="0.2" max="1" step="0.05" value="1">
+    <p class="hint" data-i18n="localOnly">Your choices affect this screen. Sound stays on your Mac.</p>
+    <p id="installHint" class="hint"></p>
+    <button id="install" type="button" data-i18n="install" hidden>Install Sillage</button>
+  </dialog>
+</body>
+</html>
