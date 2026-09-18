@@ -16,6 +16,9 @@ private struct InstrumentDrawing {
                      at: CGPoint(x: snap(x), y: snap(y)), anchor: anchor)
     }
     func line(_ a: CGPoint, _ b: CGPoint, color: Color, width: CGFloat? = nil) {
+        line(a, b, shading: .color(color), width: width)
+    }
+    func line(_ a: CGPoint, _ b: CGPoint, shading: GraphicsContext.Shading, width: CGFloat? = nil) {
         let strokeWidth = max(metrics.hairline, snap(width ?? metrics.hairline))
         var from = a, to = b
         if a.y == b.y {
@@ -24,7 +27,7 @@ private struct InstrumentDrawing {
             from.x = metrics.strokeCenter(a.x, width: strokeWidth); to.x = from.x
         }
         var path = Path(); path.move(to: from); path.addLine(to: to)
-        context.stroke(path, with: .color(color), lineWidth: strokeWidth)
+        context.stroke(path, with: shading, lineWidth: strokeWidth)
     }
 }
 
@@ -58,18 +61,24 @@ struct SpectrumView: View {
                 d.label(text, x: px, y: plot.maxY + d.m(19), size: 9)
             }
             let width = plot.width / CGFloat(frame.spectrum.count)
-            let gradient = Gradient(colors: [palette.accent.opacity(0.13), palette.accent.opacity(0.7)])
+            // Map the palette across the logarithmic frequency axis, shared by every bar.
+            let left = CGPoint(x: plot.minX, y: plot.minY)
+            let rightEdge = CGPoint(x: plot.maxX, y: plot.minY)
+            let fill: GraphicsContext.Shading = palette == .mint
+                ? .linearGradient(Gradient(colors: [palette.accent.opacity(0.13), palette.accent.opacity(0.7)]),
+                    startPoint: CGPoint(x: 0, y: plot.maxY), endPoint: CGPoint(x: 0, y: plot.minY))
+                : palette.shading(from: left, to: rightEdge, opacity: 0.72)
+            let peak = palette.shading(from: left, to: rightEdge, opacity: 0.90)
             for i in frame.spectrum.indices {
                 let px = d.snap(plot.minX + CGFloat(i) * width)
                 let right = d.snap(plot.minX + (CGFloat(i) + 0.72) * width)
                 let top = d.snap(y(frame.spectrum[i]))
                 let rect = CGRect(x: px, y: top, width: max(metrics.hairline, right - px),
                                   height: max(0, plot.maxY - top))
-                context.fill(Path(rect), with: .linearGradient(gradient,
-                    startPoint: CGPoint(x: 0, y: plot.maxY), endPoint: CGPoint(x: 0, y: plot.minY)))
+                context.fill(Path(rect), with: fill)
                 if showPeaks && frame.spectrumHold[i] > -89 {
                     d.line(CGPoint(x: px, y: y(frame.spectrumHold[i])),
-                           CGPoint(x: right, y: y(frame.spectrumHold[i])), color: palette.peak.opacity(0.85))
+                           CGPoint(x: right, y: y(frame.spectrumHold[i])), shading: peak)
                 }
             }
         }
@@ -108,7 +117,14 @@ struct PhaseView: View {
                 if i == 0 { trail.move(to: p) } else { trail.addLine(to: p) }
             }
             // Keep antialiasing on the signal itself: continuous audio geometry is not a pixel grid.
-            context.stroke(trail, with: .color(palette.accent.opacity(0.50)),
+            // Color the trace spatially without changing its fixed-gain geometry.
+            // Its own bounds keep color variation visible at quiet listening levels.
+            let bounds = trail.boundingRect
+            let traceShading: GraphicsContext.Shading = bounds.isEmpty && bounds.width == 0 && bounds.height == 0
+                ? .color(palette.accent.opacity(0.50))
+                : palette.shading(from: CGPoint(x: bounds.minX, y: bounds.maxY),
+                                  to: CGPoint(x: bounds.maxX, y: bounds.minY), opacity: 0.50)
+            context.stroke(trail, with: traceShading,
                            style: StrokeStyle(lineWidth: d.m(0.85), lineJoin: .round))
             let barY = size.height - d.m(28)
             d.line(CGPoint(x: d.m(8), y: barY), CGPoint(x: size.width-d.m(8), y: barY),
@@ -139,19 +155,25 @@ struct LevelView: View {
             func x(_ db: Float) -> CGFloat {
                 d.snap(start + CGFloat(max(0,min(1,(db+60)/60))) * (end-start))
             }
+            // Anchor colors to the full dBFS scale, not to the moving bar length.
+            let gradientStart = CGPoint(x: start, y: 0)
+            let gradientEnd = CGPoint(x: end, y: 0)
+            let peakFill = palette.shading(from: gradientStart, to: gradientEnd, opacity: 0.20)
+            let rmsFill = palette.shading(from: gradientStart, to: gradientEnd, opacity: 0.85)
+            let holdFill = palette.shading(from: gradientStart, to: gradientEnd)
             for (i, level) in [frame.left, frame.right].enumerated() {
                 let y = d.m(CGFloat(i)*42 + 29)
                 d.label(i == 0 ? "L" : "R", x: 0, y: y+d.m(5), color: Color(white: 0.82), size: 12, anchor: .leading)
                 let track = CGRect(x: start, y: y, width: end-start, height: d.m(9))
                 context.fill(Path(roundedRect: track, cornerRadius: d.m(2)), with: .color(Color(white: 0.085)))
                 context.fill(Path(CGRect(x: start, y: y, width: x(level.peakDB)-start, height: d.m(9))),
-                             with: .color(palette.accent.opacity(0.20)))
+                             with: peakFill)
                 context.fill(Path(CGRect(x: start, y: y, width: x(level.rmsDB)-start, height: d.m(9))),
-                             with: .color(palette.accent.opacity(0.85)))
+                             with: rmsFill)
                 if showPeaks {
                     d.line(CGPoint(x: x(level.holdDB), y: y-d.m(2)),
                            CGPoint(x: x(level.holdDB), y: y+d.m(11)),
-                           color: level.holdDB > -1 ? Palette.amber : palette.peak, width: d.m(1.5))
+                           shading: level.holdDB > -1 ? .color(Palette.amber) : holdFill, width: d.m(1.5))
                 }
                 if level.clipped {
                     context.fill(Path(ellipseIn: CGRect(x: end+d.m(9), y: y+d.m(2), width: d.m(5), height: d.m(5))), with: .color(.red))

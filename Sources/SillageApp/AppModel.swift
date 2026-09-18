@@ -22,7 +22,7 @@ final class AppModel: ObservableObject {
     @Published var language: AppLanguage = AppLanguage(rawValue: UserDefaults.standard.string(forKey: "appLanguage") ?? "system") ?? .system {
         didSet { UserDefaults.standard.set(language.rawValue, forKey: "appLanguage") }
     }
-    @Published var colorPalette: InstrumentPalette = InstrumentPalette(rawValue: UserDefaults.standard.string(forKey: "colorPalette") ?? "mint") ?? .mint {
+    @Published var colorPalette = InstrumentPalette(savedValue: UserDefaults.standard.string(forKey: "colorPalette")) {
         didSet { UserDefaults.standard.set(colorPalette.rawValue, forKey: "colorPalette") }
     }
     @Published var deviceName = "Audio output unchanged"

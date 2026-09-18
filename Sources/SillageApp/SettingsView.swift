@@ -78,14 +78,18 @@ struct SettingsView: View {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundStyle(palette.accent).opacity(selected ? 1 : 0)
                 }
-                HStack(alignment: .bottom, spacing: 4) {
-                    ForEach(Array([0.3, 0.6, 0.9, 0.5, 0.75, 0.4].enumerated()), id: \.offset) { _, level in
-                        VStack(spacing: 3) {
-                            Rectangle().fill(palette.peak).frame(height: 1)
-                            Rectangle().fill(palette.accent.opacity(0.75)).frame(height: 22 * level)
-                        }.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+                LinearGradient(colors: palette.colors, startPoint: .leading, endPoint: .trailing)
+                    .frame(height: 26)
+                    .mask {
+                        HStack(alignment: .bottom, spacing: 4) {
+                            ForEach(Array([0.3, 0.6, 0.9, 0.5, 0.75, 0.4].enumerated()), id: \.offset) { _, level in
+                                VStack(spacing: 3) {
+                                    Rectangle().frame(height: 1)
+                                    Rectangle().opacity(0.75).frame(height: 22 * level)
+                                }.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+                            }
+                        }
                     }
-                }.frame(height: 26)
             }
             .padding(10).frame(maxWidth: .infinity)
             .background(Color.black, in: RoundedRectangle(cornerRadius: 8))
