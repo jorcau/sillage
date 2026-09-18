@@ -1,1 +1,11 @@
-{"name":"sillage-web-validation","private":true,"type":"module","scripts":{"test:web":"node --test Tests/RemoteDisplayWebTests/*.mjs"},"engines":{"node":">=22"}}
+{
+  "name": "sillage-web-validation",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:web": "node --test Tests/RemoteDisplayWebTests/*.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
