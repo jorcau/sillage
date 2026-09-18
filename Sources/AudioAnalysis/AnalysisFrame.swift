@@ -1,0 +1,34 @@
+import Foundation
+
+public struct StereoPoint: Sendable { public var x: Float; public var y: Float }
+public struct ChannelLevel: Sendable {
+    public var rmsDB: Float = -90
+    public var peakDB: Float = -90
+    public var holdDB: Float = -90
+    public var clipped = false
+    public init() {}
+}
+public struct AnalysisFrame: Sendable {
+    public var left = ChannelLevel()
+    public var right = ChannelLevel()
+    public var spectrum: [Float] = Array(repeating: -90, count: 160)
+    public var spectrumHold: [Float] = Array(repeating: -90, count: 160)
+    public var phase: [StereoPoint] = []
+    public var correlation: Float = 0
+    public var sampleRate: Double = 48_000
+    public var processedFrames: UInt64 = 0
+    public var droppedFrames: UInt64 = 0
+    public var callbacks: UInt64 = 0
+    public var invalidBuffers: UInt64 = 0
+    public var analysisMS: Double = 0
+    public init() {}
+}
+
+// Only the analysis queue writes. The UI reads one immutable snapshot per display tick.
+public final class FrameStore: @unchecked Sendable {
+    private let lock = NSLock()
+    private var frame = AnalysisFrame()
+    public init() {}
+    public func publish(_ next: AnalysisFrame) { lock.lock(); frame = next; lock.unlock() }
+    public func read() -> AnalysisFrame { lock.lock(); defer { lock.unlock() }; return frame }
+}

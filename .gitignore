@@ -1,0 +1,29 @@
+.build/
+.swiftpm/
+dist/
+.DS_Store
+
+# Local builds, recordings and diagnostics are never published.
+work/
+build/
+outputs/
+*.app/
+*.zip
+*.dmg
+*.log
+*-session.json
+*.wav
+*.aiff
+*.pcm
+
+# Credentials and local signing material.
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+*.mobileprovision
+*.keychain*
+xcuserdata/
+*.xcuserstate
