@@ -1,6 +1,8 @@
 # Analog instrument gallery
 
-Choose a view from the top bar or the macOS **View** menu. Every instrument responds to the same live audio session; switching views keeps capture and analysis running. These screenshots use the silent Music demo.
+Choose a view from the top bar or the macOS **View** menu. Every instrument responds to the same live audio session; switching views keeps capture and analysis running.
+
+Screenshots captured from **Sillage 0.5.2** on September 19, 2026, using the silent **Music** demo. The instruments are rendered by the app; these are not mockups.
 
 ## Studio Blue · ⌘6
 
