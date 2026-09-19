@@ -40,6 +40,8 @@ Core Audio tap → private aggregate → C callback → preallocated SPSC ring
 
 The HAL callback performs no allocations, locking, FFTs, or SwiftUI work. The 65,536-frame ring accepts interleaved or planar Float32. On overflow, it discards the incoming block and increments a counter without overwriting data being read. A serial queue drains the ring every 8 ms. A short lock protects snapshots outside the audio callback. Teardown stops the callback before freeing its ring.
 
+Analysis snapshots include the monotonic time of the last actual input consumed by the pipeline. The UI considers input recent for two seconds. Generated zeros used to decay stale meters do not refresh this timestamp, while received digital silence does. A new pipeline resets it. The footer, activity indicator, and phone source status use this signal instead of cumulative callback counts. Capture details retain the stream format returned by Core Audio; FFT details use the analyzer's configuration.
+
 An output or tap-format change restarts capture and rebuilds analysis for the new sample rate. Failures remain visible. Diagnostics distinguish absent callbacks and incompatible buffers. Valid zero-filled buffers alone cannot distinguish silence, denied permission, and protected content.
 
 ## Instrument definitions

@@ -80,6 +80,10 @@ For a second screen on your phone, open **Settings → Phone display** on the Ma
 
 The bottom bar provides peak-hold visibility, OLED precautions, instrument brightness (100% at launch), and a 60 or 30 Hz target refresh rate. Full screen uses native macOS window behavior.
 
+Its left side identifies the active source: **System audio · 48 kHz**, **Demo · Music**, **Paused**, or **Waiting for audio**. The sample rate comes from the captured stream. Waiting means no input has been consumed recently; a stream containing digital silence still counts as active. Capture failures appear as **Capture unavailable** with the existing error message.
+
+Open **ⓘ Audio details** for the current sample rate, channel count, floating-point PCM format, FFT window size/duration, and lost frames or invalid buffers. The icon turns amber if the session has reported losses or invalid buffers. Capture format values are reported by macOS; they do not identify the original track's format or the DAC's settings. Demo values describe the generated signal. When stopped or connecting, no active stream format is shown.
+
 OLED mode uses pure black, subtle movement in whole physical pixels, and dimming during silence. It does not prevent burn-in. System sleep remains enabled.
 
 The meters show digital RMS, sample peaks, or the dedicated PPM quasi-peak envelope. They are not certified hardware VU/PPM, LUFS, true peak, or SPL meters. A 60 Hz target is not a guarantee of 60 presented frames per second.

@@ -74,6 +74,14 @@ Initial measurement: **5 s of stereo audio analyzed in about 0.020 s**, includin
 - Actual iPhone/Android browsers, camera scanning, phone sleep/wake, Wi-Fi roaming, sustained power use, and physical-device frame rates still need validation. The 60 Hz option is a render target; measurements arrive at about 30 Hz.
 - The viewer runs over local HTTP. HTTPS-only PWA installation, service-worker behavior on a secure deployment, and screen wake lock have not been validated on phones.
 
+## Audio status and details (0.5.1 — September 19, 2026)
+
+- The arm64 release build and packaged app signature passed. All **25 Swift tests passed**.
+- New tests distinguish actual silent input from synthetic meter-decay zeros, expire input activity after two seconds, reject invalid timestamps, and reset activity across pipeline restarts. The pipeline test covers 44.1/96 kHz capture configurations and the 48 kHz silent demo.
+- Inspected the French footer and Audio details popover in the packaged app: paused and connecting states hide active format values; Music demo shows 48 kHz, two channels, 32-bit float PCM, and an 8,192-sample FFT window lasting 170.7 ms. Loss and invalid-buffer counts were zero.
+- The popover remained open across ongoing demo animation and showed readable layout, localized labels, and a close control. English/French resource keys were checked for duplicates.
+- System capture was active before the app update, but reconnecting after the restart reproduced the earlier macOS waiting condition. The new footer correctly showed **Waiting for audio**. Live system-format presentation after reconnection remains unverified; this update does not claim to fix Core Audio startup.
+
 ## Live capture
 
 An 8 s stereo test signal, 997 Hz left / 1,499 Hz right, near −48 dBFS, was played through the system player and captured:
