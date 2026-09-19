@@ -4,6 +4,8 @@ import CRealtime
 
 public struct CaptureInfo: Sendable {
     public let sampleRate: Double
+    public let channelCount: UInt32
+    public let bitsPerChannel: UInt32
     public let outputDevice: AudioObjectID
     public let outputName: String
 }
@@ -94,7 +96,8 @@ public final class SystemAudioCapture: @unchecked Sendable {
         try checked(AudioDeviceStart(aggregate, ioProc), "Starting capture")
         addListener(object: AudioObjectID(kAudioObjectSystemObject), selector: kAudioHardwarePropertyDefaultOutputDevice)
         addListener(object: tap, selector: kAudioTapPropertyFormat)
-        return CaptureInfo(sampleRate: format.mSampleRate, outputDevice: outputID, outputName: Self.deviceName(outputID))
+        return CaptureInfo(sampleRate: format.mSampleRate, channelCount: format.mChannelsPerFrame,
+                           bitsPerChannel: format.mBitsPerChannel, outputDevice: outputID, outputName: Self.deviceName(outputID))
     }
     private func addListener(object: AudioObjectID, selector: AudioObjectPropertySelector) {
         var property = address(selector)

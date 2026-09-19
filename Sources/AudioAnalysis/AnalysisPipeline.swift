@@ -13,6 +13,7 @@ public enum DemoSignal: String, CaseIterable, Sendable {
 }
 
 public final class AnalysisPipeline: @unchecked Sendable {
+    public static let demoSampleRate = 48_000.0
     public let store: FrameStore
     private let queue = DispatchQueue(label: "audio.sillage.analysis", qos: .userInitiated)
     private var timer: DispatchSourceTimer?
@@ -23,6 +24,7 @@ public final class AnalysisPipeline: @unchecked Sendable {
     private var left = [Float](repeating: 0, count: 4096)
     private var right = [Float](repeating: 0, count: 4096)
     private var lastData = ProcessInfo.processInfo.systemUptime
+    private var lastInputTime: TimeInterval?
     public init(store: FrameStore) { self.store = store }
 
     public func start(pipe: AudioPipe?, sampleRate: Double, demo: DemoSignal? = nil) {
@@ -31,6 +33,7 @@ public final class AnalysisPipeline: @unchecked Sendable {
             self.pipe = pipe; self.demo = demo; self.demoPosition = 0
             self.analyzer = AudioAnalyzer(sampleRate: sampleRate)
             self.lastData = ProcessInfo.processInfo.systemUptime
+            self.lastInputTime = nil
             let timer = DispatchSource.makeTimerSource(queue: queue)
             timer.schedule(deadline: .now(), repeating: .milliseconds(8), leeway: .milliseconds(1))
             timer.setEventHandler { [weak self] in self?.tick() }
@@ -45,9 +48,9 @@ public final class AnalysisPipeline: @unchecked Sendable {
         guard let analyzer else { return }
         let start = ProcessInfo.processInfo.systemUptime
         if let demo {
-            let n = 384 // 48 kHz * 8 ms. Demo is analysis-only: nothing goes to speakers.
+            let n = Int(Self.demoSampleRate * 0.008) // Analysis-only: nothing goes to speakers.
             for i in 0..<n {
-                let t = Double(demoPosition + UInt64(i)) / 48_000
+                let t = Double(demoPosition + UInt64(i)) / Self.demoSampleRate
                 let tone = Float(sin(2 * Double.pi * 1000 * t)) * 0.5
                 switch demo {
                 case .mono: left[i] = tone; right[i] = tone
@@ -67,6 +70,7 @@ public final class AnalysisPipeline: @unchecked Sendable {
             }
             demoPosition += UInt64(n)
             analyzer.process(left: left, right: right, count: n)
+            lastInputTime = start
         } else if let pipe {
             var total = 0
             // Bounded drain: recover without allowing an unbounded work item to starve stop().
@@ -76,7 +80,7 @@ public final class AnalysisPipeline: @unchecked Sendable {
                 analyzer.process(left: left, right: right, count: n)
                 total += n
             }
-            if total > 0 { lastData = start }
+            if total > 0 { lastData = start; lastInputTime = start }
             else if start - lastData > 0.08 {
                 // Some HAL devices stop delivering buffers during silence. Decay stale meters.
                 let n = min(4096, Int(analyzer.sampleRate * 0.008))
@@ -85,6 +89,7 @@ public final class AnalysisPipeline: @unchecked Sendable {
             }
         }
         var frame = analyzer.frame
+        frame.lastInputTime = lastInputTime
         frame.analysisMS = (ProcessInfo.processInfo.systemUptime - start) * 1000
         if let pipe {
             frame.droppedFrames = nt_ring_dropped(pipe.pointer)

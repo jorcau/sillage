@@ -26,6 +26,12 @@ public struct AnalysisFrame: Sendable {
     public var rightPPMDB: Float = -90
     public var correlation: Float = 0
     public var sampleRate: Double = 48_000
+    /// Monotonic time of actual input consumption. Synthesized meter decay never updates this.
+    public var lastInputTime: TimeInterval?
+    public func hasRecentInput(at time: TimeInterval = ProcessInfo.processInfo.systemUptime) -> Bool {
+        guard let lastInputTime, time.isFinite, lastInputTime.isFinite else { return false }
+        return (0...2).contains(time - lastInputTime)
+    }
     public var processedFrames: UInt64 = 0
     public var droppedFrames: UInt64 = 0
     public var callbacks: UInt64 = 0

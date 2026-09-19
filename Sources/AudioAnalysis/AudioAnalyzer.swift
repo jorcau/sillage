@@ -6,6 +6,7 @@ public final class AudioAnalyzer {
     public static let fftSize = 8192
     public static let hopSize = 1024
     public static let bandCount = 160
+    public static let channelCount = 2
     public let sampleRate: Double
     private let setup: FFTSetup
     private let log2n = vDSP_Length(13)
