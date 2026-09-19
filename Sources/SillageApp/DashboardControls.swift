@@ -14,10 +14,6 @@ struct DashboardControls: View {
         HStack(spacing: m(6)) {
             viewMenu
             audioStatus
-            SettingsLink { Image(systemName: "gearshape").frame(width: m(18)) }
-                .buttonStyle(HeaderControlStyle())
-                .help(model.text("Settings") + " · ⌘,")
-                .accessibilityLabel(model.text("Settings"))
             Button {
                 Task { if model.mode == .system { await model.stop() } else { await model.startSystem() } }
             } label: {
@@ -32,6 +28,10 @@ struct DashboardControls: View {
             .buttonStyle(HeaderControlStyle())
             .help(model.text("Full Screen") + " · ⌃⌘F")
             .accessibilityLabel(model.text("Full Screen"))
+            SettingsLink { Image(systemName: "gearshape").frame(width: m(18)) }
+                .buttonStyle(HeaderControlStyle())
+                .help(model.text("Settings") + " · ⌘,")
+                .accessibilityLabel(model.text("Settings"))
         }
         .padding(m(6))
         .background(Color(white: 0.025), in: RoundedRectangle(cornerRadius: m(12)))
