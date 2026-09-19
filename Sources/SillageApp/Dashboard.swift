@@ -30,7 +30,6 @@ private final class DashboardPresentation: ObservableObject {
 
 private struct DashboardSurface: View {
     @ObservedObject var model: AppModel
-    @Environment(\.instrumentTheme) private var theme
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.instrumentMetrics) private var metrics
     @StateObject private var presentation = DashboardPresentation()
@@ -83,43 +82,12 @@ private struct DashboardSurface: View {
                 Text(model.text("S O U N D ,  I N  L I G H T")).font(.system(size: m(9), weight: .medium)).foregroundStyle(InterfaceColors.secondary)
             }
             Spacer(minLength: m(15))
-            Picker(model.text("View"), selection: $model.layout) {
-                ForEach(VisualizerLayout.allCases, id: \.self) { layout in
-                    Label(model.text(layout.title), systemImage: layout.symbol).tag(layout)
-                }
-            }
-            .pickerStyle(.menu).labelsHidden().controlSize(.small)
-            .font(.system(size: m(11), weight: .medium)).fixedSize()
-            .help(model.text("Choose a view") + " · ⌘1–9 / ⌘0 / ⌘−")
-            .accessibilityLabel(model.text("View"))
-            VStack(alignment: .trailing, spacing: m(6)) {
-                HStack(spacing: m(7)) {
-                    Circle().fill(model.mode == .system && !model.busy && frame.hasRecentInput() ? theme.accent : InterfaceColors.secondary).frame(width: m(5), height: m(5))
-                    Text(model.status(frame: frame)).font(.system(size: m(11), weight: .medium))
-                }
-                Text(model.displayedDeviceName).font(.system(size: m(10))).foregroundStyle(InterfaceColors.secondary).lineLimit(1)
-            }
-            SettingsLink {
-                Image(systemName: "gearshape").font(.system(size: m(14)))
-            }.buttonStyle(.plain)
-                .help(model.text("Settings") + " · ⌘,")
-                .accessibilityLabel(model.text("Settings"))
-            Button { Task { if model.mode == .system { await model.stop() } else { await model.startSystem() } } } label: {
-                Label(model.text(model.busy ? "Connecting…" : model.mode == .system ? "Pause" : "Listen"), systemImage: model.mode == .system ? "pause.fill" : "play.fill")
-                    .font(.system(size: m(11), weight: .medium)).padding(.horizontal, m(13)).padding(.vertical, m(10))
-            }.buttonStyle(.plain).background(theme.accent.opacity(0.12), in: RoundedRectangle(cornerRadius: m(6)))
-                .foregroundStyle(theme.accent).disabled(model.busy)
-            Button { model.toggleFullscreen() } label: { Image(systemName: "arrow.up.left.and.arrow.down.right").font(.system(size: m(13))) }
-                .buttonStyle(.plain).help(model.text("Full Screen") + " · ⌃⌘F")
-                .accessibilityLabel(model.text("Full Screen"))
+            DashboardControls(model: model, frame: frame)
         }
     }
     private func footer(frame: AnalysisFrame) -> some View {
         HStack(spacing: m(18)) {
-            HStack(spacing: m(8)) {
-                Text(model.audioSummary(frame: frame)).lineLimit(1)
-                AudioInformationButton(model: model, frame: frame)
-            }
+            AudioInformationButton(model: model, frame: frame)
             Spacer()
             Toggle(model.text("Peaks"), isOn: $model.showPeaks).toggleStyle(.checkbox)
             Toggle("OLED", isOn: $model.protectOLED).toggleStyle(.checkbox).help(model.text("Pure black, subtle pixel shifting, and dimming during silence. Does not guarantee protection against burn-in."))
@@ -133,7 +101,7 @@ private struct DashboardSurface: View {
                 Button(model.text("30 Hz · low power")) { model.targetFPS = 30 }
             }.menuStyle(.borderlessButton).fixedSize().help(model.text("Target refresh rate"))
         }.font(.system(size: m(10), design: .monospaced)).foregroundStyle(InterfaceColors.secondary)
-            .tint(theme.accent)
+            .tint(model.theme.accent)
     }
     private func writeDiagnostics(frame: AnalysisFrame) {
         let args = ProcessInfo.processInfo.arguments
