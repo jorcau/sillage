@@ -82,6 +82,13 @@ Initial measurement: **5 s of stereo audio analyzed in about 0.020 s**, includin
 - The popover remained open across ongoing demo animation and showed readable layout, localized labels, and a close control. English/French resource keys were checked for duplicates.
 - System capture was active before the app update, but reconnecting after the restart reproduced the earlier macOS waiting condition. The new footer correctly showed **Waiting for audio**. Live system-format presentation after reconnection remains unverified; this update does not claim to fix Core Audio startup.
 
+## Unified header controls (0.5.2 — September 19, 2026)
+
+- The arm64 release build and packaged app signature passed. All **25 existing Swift tests passed**; this change adds no DSP behavior.
+- Inspected the French interface with animated demo data. Source and output/demo information appear only in the top-right group. The information button remains in the bottom-left corner and opens the existing details popover.
+- The view selector, source panel, Listen/Pause, Full Screen, and far-right Settings control share aligned surfaces and spacing. The native view menu stayed open during animation, accepted a subsequent selection, and stayed synchronized with view shortcuts.
+- The selector uses a transparent native popup over the shared artwork. Incoming analysis updates do not rebuild its items or reset its selection. Hardware capture and physical OLED performance were not revalidated for this layout change.
+
 ## Live capture
 
 An 8 s stereo test signal, 997 Hz left / 1,499 Hz right, near −48 dBFS, was played through the system player and captured:
