@@ -12,7 +12,8 @@ final class AppModel: ObservableObject {
     let displayMetrics = DisplayMetrics()
     lazy var remoteDisplay = RemoteDisplayModel(store: store) { [weak self] in
         guard let self else { return RemotePresentation() }
-        let source = self.busy ? "waiting" : self.mode == .demo ? "demo" : self.mode == .system ? "system" : "paused"
+        let source = self.busy ? "waiting" : self.mode == .demo ? "demo" : self.mode == .system
+            ? (self.store.read().hasRecentInput() ? "system" : "waiting") : "paused"
         return RemotePresentation(view: self.layout.rawValue, theme: self.theme.rawValue, source: source)
     }
     lazy var pipeline = AnalysisPipeline(store: store)
@@ -25,6 +26,7 @@ final class AppModel: ObservableObject {
     @Published var message = "Ready to listen"
     @Published var error: String?
     @Published private var captureFailure: CaptureError?
+    @Published private(set) var captureInfo: CaptureInfo?
     @Published var language: AppLanguage = AppLanguage(rawValue: UserDefaults.standard.string(forKey: "appLanguage") ?? "system") ?? .system {
         didSet { UserDefaults.standard.set(language.rawValue, forKey: "appLanguage") }
     }
@@ -42,7 +44,6 @@ final class AppModel: ObservableObject {
     @Published var showPeaks = true
     @Published var protectOLED = true
     @Published var targetFPS = 60
-    private var started = Date()
     private var connectionAttempt = UUID()
 
     var localizer: AppLocalizer { AppLocalizer(language: language) }
@@ -76,10 +77,11 @@ final class AppModel: ObservableObject {
         pipe = newPipe
         do {
             let info = try await capture.start(ringAddress: UInt(bitPattern: newPipe.pointer))
+            captureInfo = info
             pipeline.start(pipe: newPipe, sampleRate: info.sampleRate)
             deviceName = info.outputName
             error = nil
-            mode = .system; message = "System audio"; started = Date()
+            mode = .system; message = "System audio"
         } catch {
             captureFailure = error as? CaptureError
             self.error = error.localizedDescription
@@ -92,9 +94,9 @@ final class AppModel: ObservableObject {
         busy = true; error = nil; captureFailure = nil
         await stopResources()
         demoSignal = signal
-        pipeline.start(pipe: nil, sampleRate: 48_000, demo: signal)
+        pipeline.start(pipe: nil, sampleRate: AnalysisPipeline.demoSampleRate, demo: signal)
         mode = .demo; message = "Silent demo"; deviceName = signal.rawValue
-        started = Date(); busy = false
+        busy = false
     }
     func stop() async {
         guard !busy else { return }
@@ -104,6 +106,7 @@ final class AppModel: ObservableObject {
     }
     func shutdown() async { remoteDisplay.setEnabled(false); await stopResources() }
     private func stopResources() async {
+        captureInfo = nil
         await capture.stop()
         pipeline.stop()
         store.publish(AnalysisFrame())
@@ -114,11 +117,39 @@ final class AppModel: ObservableObject {
         await startSystem()
     }
     func status(frame: AnalysisFrame) -> String {
-        if mode == .system && frame.callbacks == 0 && Date().timeIntervalSince(started) > 3 {
-            return text("Waiting for audio · check macOS permission")
-        }
         if frame.invalidBuffers > 0 { return text("Audio format changed · reconnect capture") }
+        if mode == .system && !busy && !frame.hasRecentInput() { return text("Waiting for audio") }
         return text(message)
+    }
+    func audioSummary(frame: AnalysisFrame) -> String {
+        if busy { return text("Waiting for audio") }
+        switch mode {
+        case .idle: return text(error == nil ? "Paused" : "Capture unavailable")
+        case .demo: return localizer.format("Demo · %@", text(demoSignal.rawValue))
+        case .system:
+            guard frame.hasRecentInput() else { return text("Waiting for audio") }
+            return localizer.format("System audio · %@", sampleRateText(frame.sampleRate))
+        }
+    }
+    func sampleRateText(_ rate: Double) -> String {
+        let key = rate.truncatingRemainder(dividingBy: 1000) == 0 ? "%.0f kHz" : "%.1f kHz"
+        return localizer.format(key, rate / 1000)
+    }
+    struct StreamFormat {
+        let sampleRate: Double
+        let channels: Int
+        let bits: Int
+    }
+    var streamFormat: StreamFormat? {
+        guard !busy else { return nil }
+        switch mode {
+        case .system:
+            guard let captureInfo else { return nil }
+            return StreamFormat(sampleRate: captureInfo.sampleRate, channels: Int(captureInfo.channelCount), bits: Int(captureInfo.bitsPerChannel))
+        case .demo:
+            return StreamFormat(sampleRate: AnalysisPipeline.demoSampleRate, channels: AudioAnalyzer.channelCount, bits: MemoryLayout<Float>.size * 8)
+        case .idle: return nil
+        }
     }
     func toggleFullscreen() { NSApp.windows.first(where: { $0.title == "Sillage" })?.toggleFullScreen(nil) }
     func openPrivacy() {

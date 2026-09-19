@@ -94,7 +94,7 @@ private struct DashboardSurface: View {
             .accessibilityLabel(model.text("View"))
             VStack(alignment: .trailing, spacing: m(6)) {
                 HStack(spacing: m(7)) {
-                    Circle().fill(model.mode == .system ? theme.accent : InterfaceColors.secondary).frame(width: m(5), height: m(5))
+                    Circle().fill(model.mode == .system && !model.busy && frame.hasRecentInput() ? theme.accent : InterfaceColors.secondary).frame(width: m(5), height: m(5))
                     Text(model.status(frame: frame)).font(.system(size: m(11), weight: .medium))
                 }
                 Text(model.displayedDeviceName).font(.system(size: m(10))).foregroundStyle(InterfaceColors.secondary).lineLimit(1)
@@ -116,10 +116,10 @@ private struct DashboardSurface: View {
     }
     private func footer(frame: AnalysisFrame) -> some View {
         HStack(spacing: m(18)) {
-            Text(model.mode == .idle ? model.text("STEREO PCM") : model.localizer.format("%.1f kHz · STEREO", frame.sampleRate / 1000))
-            Circle().fill(InterfaceColors.line).frame(width: m(3), height: m(3))
-            Text("FFT 8192")
-            if frame.droppedFrames > 0 { Text(model.localizer.format("%@ dropped frames", String(frame.droppedFrames))).foregroundStyle(InterfaceColors.amber) }
+            HStack(spacing: m(8)) {
+                Text(model.audioSummary(frame: frame)).lineLimit(1)
+                AudioInformationButton(model: model, frame: frame)
+            }
             Spacer()
             Toggle(model.text("Peaks"), isOn: $model.showPeaks).toggleStyle(.checkbox)
             Toggle("OLED", isOn: $model.protectOLED).toggleStyle(.checkbox).help(model.text("Pure black, subtle pixel shifting, and dimming during silence. Does not guarantee protection against burn-in."))
